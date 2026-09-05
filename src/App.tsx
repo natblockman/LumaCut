@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent, PointerEvent as ReactPointerEvent } from 'react'
+import type { ChangeEvent, CSSProperties, DragEvent, PointerEvent as ReactPointerEvent } from 'react'
 import {
   AudioLines, Captions, Check, ChevronDown, CirclePlay, Crop, Download,
   Film, FolderOpen, Gauge, Globe2, Menu, Mic2, MousePointer2,
@@ -14,14 +14,17 @@ import type { LanguageCode } from './i18n'
 
 type Tool = 'media' | 'audio' | 'text' | 'stickers' | 'effects' | 'captions'
 type TrackType = 'video' | 'text' | 'sticker' | 'caption' | 'audio'
-type AnimationPreset = 'none' | 'fade-in' | 'fade-out' | 'zoom-in' | 'slide-up' | 'slide-left'
+type AnimationPreset = 'none' | 'fade-in' | 'fade-out' | 'zoom-in' | 'slide-up' | 'slide-left' | 'typewriter'
 type AnimationSettings = { animation: AnimationPreset; animationDuration: number }
+type TextEffectPreset = 'none' | 'outline' | 'shadow' | 'glow' | 'neon' | 'background'
+type TextEffectSettings = { textEffect: TextEffectPreset; strokeColor: string; strokeWidth: number; effectColor: string; backgroundColor: string; backgroundOpacity: number; letterSpacing: number }
 type TransitionPreset = 'none' | 'crossfade' | 'fade-black' | 'slide-left' | 'slide-up' | 'zoom'
 type TransitionSettings = { transition: TransitionPreset; transitionDuration: number }
 type TimelineTrack = { id: string; type: TrackType; label: string }
-type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; color: string } & AnimationSettings & TransitionSettings
+type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; color: string } & AnimationSettings & TransitionSettings
+type VideoAsset = { id: number; name: string; url: string; duration: number }
 type AudioClip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string }
-type TextClip = { id: number; trackId: string; text: string; start: number; duration: number; x: number; y: number; fontSize: number; fontFamily: string; color: string; opacity: number; bold: boolean } & AnimationSettings
+type TextClip = { id: number; trackId: string; text: string; start: number; duration: number; x: number; y: number; fontSize: number; fontFamily: string; color: string; opacity: number; bold: boolean } & AnimationSettings & TextEffectSettings
 type StickerClip = { id: number; trackId: string; name: string; src: string; start: number; duration: number; x: number; y: number; size: number; rotation: number; opacity: number } & AnimationSettings
 type CaptionClip = { id: number; trackId: string; text: string; start: number; duration: number }
 
@@ -31,28 +34,37 @@ const initialTracks: TimelineTrack[] = [
 ]
 
 const initialClips: Clip[] = [
-  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, color: '#78dce8', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
-  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, color: '#a78bfa', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
-  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, color: '#fb7185', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
+  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
+  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
+  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
 ]
 const initialAudioClips: AudioClip[] = []
 const initialTextClips: TextClip[] = []
 const initialStickerClips: StickerClip[] = []
 const initialCaptionClips: CaptionClip[] = []
 
-const stickerAssets = [
-  { name: 'Heart eyes', keywords: 'รัก หัวใจ love', src: './stickers/1F60D.svg' },
-  { name: 'Tears of joy', keywords: 'ตลก หัวเราะ laugh', src: './stickers/1F602.svg' },
-  { name: 'Heart', keywords: 'รัก red heart', src: './stickers/2764.svg' },
-  { name: 'Fire', keywords: 'ฮิต ร้อน fire', src: './stickers/1F525.svg' },
-  { name: 'Sparkles', keywords: 'วิ้ง sparkle shine', src: './stickers/2728.svg' },
-  { name: 'Party', keywords: 'ฉลอง party celebrate', src: './stickers/1F389.svg' },
-  { name: 'Thumbs up', keywords: 'ถูกใจ like thumb', src: './stickers/1F44D.svg' },
-  { name: 'Rocket', keywords: 'เร็ว launch rocket', src: './stickers/1F680.svg' },
-  { name: 'Star', keywords: 'ดาว star', src: './stickers/1F31F.svg' },
-  { name: 'Cool', keywords: 'แว่น cool sunglasses', src: './stickers/1F60E.svg' },
-  { name: 'Hundred', keywords: 'ร้อย perfect 100', src: './stickers/1F4AF.svg' },
-  { name: 'Movie camera', keywords: 'วิดีโอ film movie', src: './stickers/1F3A5.svg' },
+type StickerAsset = { name: string; keywords: string; src: string; kind: 'sticker' | 'gif' }
+const stickerAssets: StickerAsset[] = [
+  { name: 'Heart eyes', keywords: 'รัก หัวใจ love', src: './stickers/1F60D.svg', kind: 'sticker' },
+  { name: 'Tears of joy', keywords: 'ตลก หัวเราะ laugh', src: './stickers/1F602.svg', kind: 'sticker' },
+  { name: 'Heart', keywords: 'รัก red heart', src: './stickers/2764.svg', kind: 'sticker' },
+  { name: 'Fire', keywords: 'ฮิต ร้อน fire', src: './stickers/1F525.svg', kind: 'sticker' },
+  { name: 'Sparkles', keywords: 'วิ้ง sparkle shine', src: './stickers/2728.svg', kind: 'sticker' },
+  { name: 'Party', keywords: 'ฉลอง party celebrate', src: './stickers/1F389.svg', kind: 'sticker' },
+  { name: 'Thumbs up', keywords: 'ถูกใจ like thumb', src: './stickers/1F44D.svg', kind: 'sticker' },
+  { name: 'Rocket', keywords: 'เร็ว launch rocket', src: './stickers/1F680.svg', kind: 'sticker' },
+  { name: 'Star', keywords: 'ดาว star', src: './stickers/1F31F.svg', kind: 'sticker' },
+  { name: 'Cool', keywords: 'แว่น cool sunglasses', src: './stickers/1F60E.svg', kind: 'sticker' },
+  { name: 'Hundred', keywords: 'ร้อย perfect 100', src: './stickers/1F4AF.svg', kind: 'sticker' },
+  { name: 'Movie camera', keywords: 'วิดีโอ film movie', src: './stickers/1F3A5.svg', kind: 'sticker' },
+  { name: 'LOL', keywords: 'ตลก หัวเราะ funny laugh meme', src: './stickers/meme-lol.gif', kind: 'gif' },
+  { name: 'WOW', keywords: 'ว้าว ตื่นเต้น surprised amazing meme', src: './stickers/meme-wow.gif', kind: 'gif' },
+  { name: 'BRUH', keywords: 'อึ้ง ไม่อยากเชื่อ reaction meme', src: './stickers/meme-bruh.gif', kind: 'gif' },
+  { name: 'NOPE', keywords: 'ไม่ ปฏิเสธ no reject meme', src: './stickers/meme-nope.gif', kind: 'gif' },
+  { name: 'NICE', keywords: 'ดี เยี่ยม cool good meme', src: './stickers/meme-nice.gif', kind: 'gif' },
+  { name: 'SUS', keywords: 'น่าสงสัย suspicious among meme', src: './stickers/meme-sus.gif', kind: 'gif' },
+  { name: "LET'S GO!", keywords: 'ไป ลุย เย้ excited hype meme', src: './stickers/meme-lets-go.gif', kind: 'gif' },
+  { name: 'MOOD', keywords: 'อารมณ์ ความรู้สึก vibe reaction meme', src: './stickers/meme-mood.gif', kind: 'gif' },
 ]
 
 const fontOptions = [
@@ -78,6 +90,28 @@ const animationOptions = [
   { value: 'slide-left', labelKey: 'slideLeft' },
 ] as const
 
+const textAnimationOptions = [...animationOptions, { value: 'typewriter', labelKey: 'typewriter' }] as const
+
+const textEffectOptions = [
+  { value: 'none', labelKey: 'effectNone' },
+  { value: 'outline', labelKey: 'effectOutline' },
+  { value: 'shadow', labelKey: 'effectShadow' },
+  { value: 'glow', labelKey: 'effectGlow' },
+  { value: 'neon', labelKey: 'effectNeon' },
+  { value: 'background', labelKey: 'effectBackground' },
+] as const
+
+const textTemplates = [
+  { labelKey: 'templateClean', textKey: 'heading', sample: 'CLEAN', className: 'template-clean', style: { fontSize: 48, fontFamily: 'Arial, sans-serif', color: '#ffffff', bold: true, textEffect: 'outline', strokeColor: '#111111', strokeWidth: 2, x: 50, y: 50 } },
+  { labelKey: 'templateSubtitle', textKey: 'captionPreset', sample: 'SUBTITLE', className: 'template-subtitle', style: { fontSize: 28, fontFamily: '"Segoe UI", sans-serif', color: '#ffffff', bold: false, textEffect: 'background', backgroundColor: '#000000', backgroundOpacity: 72, x: 50, y: 80 } },
+  { labelKey: 'templateNeon', textKey: 'heading', sample: 'NEON', className: 'template-neon', style: { fontSize: 52, fontFamily: 'Impact, sans-serif', color: '#f5ffff', bold: false, textEffect: 'neon', effectColor: '#00f5ff', strokeColor: '#ffffff', strokeWidth: 1, letterSpacing: 2 } },
+  { labelKey: 'templateCinema', textKey: 'heading', sample: 'CINEMA', className: 'template-cinema', style: { fontSize: 46, fontFamily: 'Georgia, serif', color: '#f7df9a', bold: true, textEffect: 'shadow', effectColor: '#000000', letterSpacing: 3, y: 72 } },
+  { labelKey: 'templatePop', textKey: 'heading', sample: 'POP!', className: 'template-pop', style: { fontSize: 54, fontFamily: 'Arial, sans-serif', color: '#ffe34f', bold: true, textEffect: 'outline', strokeColor: '#ef3d96', strokeWidth: 6 } },
+  { labelKey: 'templateMinimal', textKey: 'newText', sample: 'minimal', className: 'template-minimal', style: { fontSize: 34, fontFamily: '"Segoe UI", sans-serif', color: '#ffffff', bold: false, textEffect: 'shadow', effectColor: '#000000', letterSpacing: 4 } },
+  { labelKey: 'templateBreaking', textKey: 'heading', sample: 'BREAKING', className: 'template-breaking', style: { fontSize: 38, fontFamily: 'Arial, sans-serif', color: '#ffffff', bold: true, textEffect: 'background', backgroundColor: '#dc2638', backgroundOpacity: 100, y: 80 } },
+  { labelKey: 'templateRetro', textKey: 'heading', sample: 'RETRO', className: 'template-retro', style: { fontSize: 42, fontFamily: '"Courier New", monospace', color: '#ffd29b', bold: true, textEffect: 'glow', effectColor: '#ff6d3a', letterSpacing: 2 } },
+] as const
+
 const transitionOptions = [
   { value: 'none', labelKey: 'transitionNone' },
   { value: 'crossfade', labelKey: 'crossfade' },
@@ -97,6 +131,66 @@ const animationFrame = (preset: AnimationPreset, start: number, duration: number
   if (preset === 'slide-up') return { opacity: entering, scale: 1, x: 0, y: (1 - entering) * 14 }
   if (preset === 'slide-left') return { opacity: entering, scale: 1, x: (1 - entering) * 14, y: 0 }
   return { opacity: 1, scale: 1, x: 0, y: 0 }
+}
+
+const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+const animatedText = (text: string, animation: AnimationPreset, start: number, duration: number, animationDuration: number, time: number) => {
+  if (animation !== 'typewriter') return text
+  const characters = [...graphemeSegmenter.segment(text)].map((part) => part.segment)
+  const revealDuration = Math.max(.1, Math.min(animationDuration, duration))
+  const progress = Math.max(0, Math.min(1, (time - start) / revealDuration))
+  return characters.slice(0, Math.floor(characters.length * progress)).join('')
+}
+
+const hexToRgba = (hex: string, opacity: number) => {
+  const normalized = hex.replace('#', '')
+  const value = normalized.length === 3 ? normalized.split('').map((part) => `${part}${part}`).join('') : normalized
+  const parsed = Number.parseInt(value, 16)
+  if (!Number.isFinite(parsed)) return `rgba(0, 0, 0, ${opacity})`
+  return `rgba(${(parsed >> 16) & 255}, ${(parsed >> 8) & 255}, ${parsed & 255}, ${opacity})`
+}
+
+const textEffectStyle = (item: TextClip): CSSProperties => {
+  const style: CSSProperties = { letterSpacing: item.letterSpacing, textShadow: 'none' }
+  if (item.textEffect === 'outline') {
+    style.WebkitTextStroke = `${item.strokeWidth}px ${item.strokeColor}`
+    style.paintOrder = 'stroke fill'
+  }
+  if (item.textEffect === 'shadow') style.textShadow = `0 .12em .28em ${item.effectColor}`
+  if (item.textEffect === 'glow') style.textShadow = `0 0 .12em ${item.effectColor}, 0 0 .35em ${item.effectColor}, 0 0 .7em ${item.effectColor}`
+  if (item.textEffect === 'neon') {
+    style.WebkitTextStroke = `${Math.max(.5, item.strokeWidth / 2)}px ${item.strokeColor}`
+    style.paintOrder = 'stroke fill'
+    style.textShadow = `0 0 .08em #ffffff, 0 0 .28em ${item.effectColor}, 0 0 .65em ${item.effectColor}`
+  }
+  if (item.textEffect === 'background') {
+    style.background = hexToRgba(item.backgroundColor, item.backgroundOpacity / 100)
+    style.padding = '.2em .42em'
+    style.borderRadius = '.16em'
+  }
+  return style
+}
+
+const measureSpacedText = (ctx: CanvasRenderingContext2D, text: string, spacing: number) => {
+  const characters = [...graphemeSegmenter.segment(text)].map((part) => part.segment)
+  return characters.reduce((width, character) => width + ctx.measureText(character).width, 0) + Math.max(0, characters.length - 1) * spacing
+}
+
+const drawSpacedText = (ctx: CanvasRenderingContext2D, text: string, spacing: number, mode: 'fill' | 'stroke') => {
+  if (!spacing) {
+    if (mode === 'fill') ctx.fillText(text, 0, 0)
+    else ctx.strokeText(text, 0, 0)
+    return
+  }
+  const characters = [...graphemeSegmenter.segment(text)].map((part) => part.segment)
+  let x = -measureSpacedText(ctx, text, spacing) / 2
+  ctx.textAlign = 'left'
+  characters.forEach((character) => {
+    if (mode === 'fill') ctx.fillText(character, x, 0)
+    else ctx.strokeText(character, x, 0)
+    x += ctx.measureText(character).width + spacing
+  })
+  ctx.textAlign = 'center'
 }
 
 type VisualFrame = { opacity: number; scale: number; x: number; y: number }
@@ -183,6 +277,7 @@ function App() {
   const [tracks, setTracks] = useState(initialTracks)
   const [videoUrl, setVideoUrl] = useState('')
   const [fileName, setFileName] = useState('travel_vlog_01.mp4')
+  const [videoAssets, setVideoAssets] = useState<VideoAsset[]>([])
   const [duration, setDuration] = useState(15)
   const [currentTime, setCurrentTime] = useState(3.7)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -192,7 +287,7 @@ function App() {
   const [audioName, setAudioName] = useState('')
   const [audioClips, setAudioClips] = useState(initialAudioClips)
   const [selectedAudioClip, setSelectedAudioClip] = useState(0)
-  const [isAudioDetached, setIsAudioDetached] = useState(false)
+  const [_isAudioDetached, setIsAudioDetached] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingSeconds, setRecordingSeconds] = useState(0)
   const [textClips, setTextClips] = useState(initialTextClips)
@@ -200,6 +295,7 @@ function App() {
   const [stickerClips, setStickerClips] = useState(initialStickerClips)
   const [selectedStickerClip, setSelectedStickerClip] = useState(0)
   const [stickerSearch, setStickerSearch] = useState('')
+  const [stickerCategory, setStickerCategory] = useState<'all' | 'sticker' | 'gif'>('all')
   const [captionClips, setCaptionClips] = useState(initialCaptionClips)
   const [selectedCaptionClip, setSelectedCaptionClip] = useState(0)
   const [captionDraft, setCaptionDraft] = useState('')
@@ -212,7 +308,7 @@ function App() {
   const [contrast, setContrast] = useState(0)
   const [saturation, setSaturation] = useState(0)
   const [videoInspectorTab, setVideoInspectorTab] = useState<'video' | 'animation' | 'transition' | 'adjust'>('video')
-  const [textInspectorTab, setTextInspectorTab] = useState<'text' | 'style' | 'animation'>('text')
+  const [textInspectorTab, setTextInspectorTab] = useState<'text' | 'style' | 'effects' | 'animation'>('text')
   const [stickerInspectorTab, setStickerInspectorTab] = useState<'sticker' | 'animation'>('sticker')
   const [captionInspectorTab, setCaptionInspectorTab] = useState<'caption' | 'format'>('caption')
   const [toast, setToast] = useState('')
@@ -239,6 +335,10 @@ function App() {
   const hasAdjacentPreviousClip = Boolean(currentVideoClip && previousVideoClip && Math.abs(previousVideoClip.start + previousVideoClip.duration - currentVideoClip.start) < .11)
   const currentTransition = currentVideoClip && hasAdjacentPreviousClip ? transitionFrame(currentVideoClip.transition, currentVideoClip.start, Math.min(currentVideoClip.transitionDuration, currentVideoClip.duration, previousVideoClip!.duration), currentTime) : transitionFrame('none', 0, 1, 0)
   const videoMotion = currentVideoClip ? combineFrames(animationFrame(currentVideoClip.animation, currentVideoClip.start, currentVideoClip.duration, currentVideoClip.animationDuration, currentTime), currentTransition.current) : neutralFrame
+  const previewVideoUrl = currentVideoClip?.sourceUrl || activeClip?.sourceUrl || videoUrl
+  const isCurrentVideoDetached = Boolean(currentVideoClip && audioClips.some((item) => item.sourceUrl === currentVideoClip.sourceUrl))
+  const selectedVideoSource = activeClip?.sourceUrl || currentVideoClip?.sourceUrl || ''
+  const isSelectedVideoDetached = Boolean(selectedVideoSource && audioClips.some((item) => item.sourceUrl === selectedVideoSource))
   const t = (key: Parameters<typeof translate>[1], variables?: Record<string, string | number>) => translate(language, key, variables)
   const trackBaseName = (type: TrackType) => t(({ video: 'trackVideo', text: 'trackText', sticker: 'trackSticker', caption: 'trackCaption', audio: 'trackAudio' } as const)[type])
   const trackDisplayLabel = (track: TimelineTrack) => track.id === 'video-1' ? t('mainVideo') : track.id.endsWith('-1') ? trackBaseName(track.type) : `${trackBaseName(track.type)} ${track.label}`
@@ -253,7 +353,7 @@ function App() {
     setTracks((items) => items.some((item) => item.type === type) ? items : orderTimelineTracks([...items, next]))
     return next.id
   }
-  const filteredStickerAssets = stickerAssets.filter((asset) => `${asset.name} ${asset.keywords}`.toLowerCase().includes(stickerSearch.trim().toLowerCase()))
+  const filteredStickerAssets = stickerAssets.filter((asset) => (stickerCategory === 'all' || asset.kind === stickerCategory) && `${asset.name} ${asset.keywords}`.toLowerCase().includes(stickerSearch.trim().toLowerCase()))
   const formatZoomPercent = (value: number) => value >= .1 ? String(Math.round(value * 100)) : (value * 100).toFixed(2)
   const applyTimelineZoom = (value: number) => {
     const safe = Number.isFinite(value) ? Math.min(10000, Math.max(.0001, value)) : 1
@@ -286,8 +386,8 @@ function App() {
     if (videoUrl && video) {
       const clip = clips.find((item) => currentTime >= item.start && currentTime < item.start + item.duration) ?? [...clips].sort((a, b) => a.start - b.start)[0]
       if (clip && (currentTime < clip.start || currentTime >= clip.start + clip.duration)) seek(clip.start)
-      if (video.paused) await video.play()
-      else video.pause()
+      if (isPlaying) { video.pause(); setIsPlaying(false) }
+      else { setIsPlaying(true); await video.play().catch(() => undefined) }
     } else if (audioUrl) {
       if (isPlaying) setIsPlaying(false)
       else {
@@ -303,7 +403,7 @@ function App() {
     setCurrentTime(next)
     if (videoRef.current && videoUrl) {
       const clip = clips.find((item) => next >= item.start && next < item.start + item.duration)
-      if (clip) videoRef.current.currentTime = clip.offset + next - clip.start
+      if (clip && videoRef.current.getAttribute('src') === clip.sourceUrl) videoRef.current.currentTime = clip.offset + next - clip.start
       else videoRef.current.pause()
     }
   }
@@ -355,8 +455,8 @@ function App() {
     if (!video) return
     video.playbackRate = speed
     video.volume = volume / 100
-    video.muted = isAudioDetached
-  }, [speed, volume, videoUrl, isAudioDetached])
+    video.muted = isCurrentVideoDetached
+  }, [speed, volume, previewVideoUrl, isCurrentVideoDetached])
 
   useEffect(() => {
     const outgoingVideo = transitionVideoRef.current
@@ -423,36 +523,48 @@ function App() {
     return () => clearInterval(timer)
   }, [isPlaying, videoUrl, duration, speed])
 
-  const importFile = (file?: File) => {
-    if (!file || !file.type.startsWith('video/')) return setToast(t('selectVideoFile'))
-    if (videoUrl) URL.revokeObjectURL(videoUrl)
-    if (isAudioDetached) {
-      const remainingAudio = audioClips.filter((clip) => clip.sourceUrl !== videoUrl)
-      setAudioUrl(remainingAudio[0]?.sourceUrl ?? '')
-      setAudioClips(remainingAudio)
-      setSelectedAudioClip(0)
-      setIsAudioDetached(false)
-      setAudioName(remainingAudio[0]?.label ?? '')
-    }
-    const id = Date.now()
-    setVideoUrl(URL.createObjectURL(file))
-    setFileName(file.name)
-    setCurrentTime(0)
-    setClips([{ id, trackId: ensureTrackId('video'), label: file.name.replace(/\.[^.]+$/, ''), start: 0, duration: 15, offset: 0, sourceDuration: 15, color: '#78dce8', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 }])
+  const importFile = async (file: File) => {
+    const url = URL.createObjectURL(file)
+    const sourceDuration = await new Promise<number>((resolve) => {
+      const probe = document.createElement('video')
+      probe.preload = 'metadata'
+      probe.onloadedmetadata = () => resolve(Number.isFinite(probe.duration) ? probe.duration : 15)
+      probe.onerror = () => resolve(15)
+      probe.src = url
+    })
+    const id = Date.now() + Math.floor(Math.random() * 1000)
+    const trackId = ensureTrackId('video')
+    const palette = ['#78dce8', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#60a5fa']
+    setVideoUrl((current) => current || url)
+    setVideoAssets((items) => [...items, { id, name: file.name, url, duration: sourceDuration }])
+    setClips((items) => {
+      const realClips = items.filter((item) => item.sourceUrl)
+      const start = Math.max(0, ...realClips.map((item) => item.start + item.duration))
+      const next: Clip = { id, trackId, label: file.name.replace(/\.[^.]+$/, ''), start, duration: sourceDuration, offset: 0, sourceDuration, sourceUrl: url, color: palette[realClips.length % palette.length], animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 }
+      return [...realClips, next]
+    })
+    setDuration((current) => current + sourceDuration)
     setSelectedClip(id); setSelectedAudioClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0)
-    setToast(t('importedVideo'))
+  }
+
+  const importFiles = async (files: File[]) => {
+    const videos = files.filter((file) => file.type.startsWith('video/'))
+    if (!videos.length) return setToast(t('selectVideoFile'))
+    if (!videoUrl) { setFileName(videos[0].name); setCurrentTime(0); setDuration(0) }
+    for (const file of videos) await importFile(file)
+    setToast(videos.length > 1 ? t('importedVideos', { count: videos.length }) : t('importedVideo'))
   }
 
   const detachAudioFromVideo = () => {
-    if (!videoUrl) return setToast(t('importVideoFirst'))
-    if (isAudioDetached) return setToast(t('alreadyDetached'))
+    const sourceClip = activeClip ?? currentVideoClip
+    if (!sourceClip?.sourceUrl) return setToast(t('importVideoFirst'))
+    if (audioClips.some((item) => item.sourceUrl === sourceClip.sourceUrl && Math.abs(item.offset - sourceClip.offset) < .01)) return setToast(t('alreadyDetached'))
     const id = Date.now()
-    const baseName = fileName.replace(/\.[^.]+$/, '')
-    const sourceDuration = Number.isFinite(videoRef.current?.duration) ? videoRef.current!.duration : duration
+    const baseName = sourceClip.label.replace(/\s*\(\d+\)$/, '')
     const audioTrackId = ensureTrackId('audio')
-    setAudioUrl(videoUrl)
+    setAudioUrl(sourceClip.sourceUrl)
     setAudioName(t('sourceAudio', { name: baseName }))
-    setAudioClips((items) => [...items, { id, trackId: audioTrackId, label: t('audioSuffix', { name: baseName }), start: 0, duration: sourceDuration, offset: 0, sourceDuration, sourceUrl: videoUrl }])
+    setAudioClips((items) => [...items, { id, trackId: audioTrackId, label: t('audioSuffix', { name: baseName }), start: sourceClip.start, duration: sourceClip.duration, offset: sourceClip.offset, sourceDuration: sourceClip.sourceDuration, sourceUrl: sourceClip.sourceUrl }])
     setSelectedAudioClip(id)
     setSelectedClip(0)
     setSelectedTextClip(0)
@@ -465,9 +577,11 @@ function App() {
 
   const onDrop = (event: DragEvent) => {
     event.preventDefault(); setIsDragging(false)
-    const file = event.dataTransfer.files?.[0]
-    if (file?.type.startsWith('audio/')) importAudio(file)
-    else importFile(file)
+    const files = Array.from(event.dataTransfer.files ?? [])
+    const videos = files.filter((file) => file.type.startsWith('video/'))
+    if (videos.length) void importFiles(videos)
+    else if (files[0]?.type.startsWith('audio/')) importAudio(files[0])
+    else setToast(t('selectVideoFile'))
   }
   const importAudio = (file?: File) => {
     if (!file || !file.type.startsWith('audio/')) return setToast(t('selectAudioFile'))
@@ -584,9 +698,9 @@ function App() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const addText = (preset = t('newText')) => {
+  const addText = (preset = t('newText'), template: Partial<TextClip> = {}) => {
     const id = Date.now()
-    const next: TextClip = { id, trackId: ensureTrackId('text'), text: preset, start: currentTime, duration: Math.max(2, Math.min(5, projectDuration - currentTime)), x: 50, y: 50, fontSize: preset === t('heading') ? 48 : 32, fontFamily: 'Arial, sans-serif', color: '#ffffff', opacity: 100, bold: preset === t('heading'), animation: 'none', animationDuration: 1 }
+    const next: TextClip = { id, trackId: ensureTrackId('text'), text: preset, start: currentTime, duration: Math.max(2, Math.min(5, projectDuration - currentTime)), x: 50, y: 50, fontSize: preset === t('heading') ? 48 : 32, fontFamily: 'Arial, sans-serif', color: '#ffffff', opacity: 100, bold: preset === t('heading'), animation: 'none', animationDuration: 1, textEffect: 'none', strokeColor: '#101114', strokeWidth: 3, effectColor: '#75ead7', backgroundColor: '#000000', backgroundOpacity: 72, letterSpacing: 0, ...template }
     setTextClips((items) => [...items, next]); setSelectedTextClip(id); setSelectedStickerClip(0); setSelectedClip(0); setSelectedAudioClip(0); setSelectedCaptionClip(0); setActiveTool('text'); setToast(t('added', { item: t('text') }))
   }
   const updateText = (patch: Partial<TextClip>) => {
@@ -599,7 +713,7 @@ function App() {
     setClips((items) => items.map((item) => item.id === activeClip.id ? { ...item, ...patch } : item))
   }
 
-  const addSticker = (asset: (typeof stickerAssets)[number]) => {
+  const addSticker = (asset: StickerAsset) => {
     const id = stickerClips.reduce((highest, item) => Math.max(highest, item.id), 1000) + 1
     const next: StickerClip = { id, trackId: ensureTrackId('sticker'), name: asset.name, src: asset.src, start: currentTime, duration: Math.max(1, Math.min(4, projectDuration - currentTime || 4)), x: 50, y: 50, size: 26, rotation: 0, opacity: 100, animation: 'none', animationDuration: 1 }
     setStickerClips((items) => [...items, next])
@@ -626,9 +740,9 @@ function App() {
     setCaptionClips((items) => items.map((item) => item.id === activeCaptionClip.id ? { ...item, ...patch } : item))
   }
 
-  const renderAnimationEditor = (settings: AnimationSettings, update: (patch: Partial<AnimationSettings>) => void, start: number, clipDuration: number) => <>
-    <div className="property-section animation-editor"><h3><Sparkles size={16}/>{t('animation')}</h3><div className="animation-presets">{animationOptions.map((option) => <button key={option.value} className={settings.animation === option.value ? 'active' : ''} onClick={() => { update({ animation: option.value }); const previewOffset = Math.min(settings.animationDuration * .35, Math.max(.05, clipDuration / 3)); seek(option.value === 'fade-out' ? start + clipDuration - previewOffset : start + previewOffset) }}><i className={`animation-swatch ${option.value}`}/><span>{t(option.labelKey)}</span></button>)}</div></div>
-    <div className="property-section"><label>{t('animationDuration')} <span>{settings.animationDuration.toFixed(1)}s</span><input type="range" min="0.1" max={Math.max(.1, Math.min(3, clipDuration))} step="0.1" value={Math.min(settings.animationDuration, clipDuration)} onChange={(event) => update({ animationDuration: Number(event.target.value) })}/></label><p className="animation-hint">{t('animationHint')}</p></div>
+  const renderAnimationEditor = (settings: AnimationSettings, update: (patch: Partial<AnimationSettings>) => void, start: number, clipDuration: number, includeTypewriter = false) => <>
+    <div className="property-section animation-editor"><h3><Sparkles size={16}/>{t('animation')}</h3><div className="animation-presets">{(includeTypewriter ? textAnimationOptions : animationOptions).map((option) => <button key={option.value} className={settings.animation === option.value ? 'active' : ''} onClick={() => { update({ animation: option.value }); const previewOffset = Math.min(settings.animationDuration * .35, Math.max(.05, clipDuration / 3)); seek(option.value === 'fade-out' ? start + clipDuration - previewOffset : start + previewOffset) }}><i className={`animation-swatch ${option.value}`}/><span>{t(option.labelKey)}</span></button>)}</div></div>
+    <div className="property-section"><label>{settings.animation === 'typewriter' ? t('typingDuration') : t('animationDuration')} <span>{settings.animationDuration.toFixed(1)}s</span><input type="range" min="0.1" max={Math.max(.1, Math.min(3, clipDuration))} step="0.1" value={Math.min(settings.animationDuration, clipDuration)} onChange={(event) => update({ animationDuration: Number(event.target.value) })}/></label><p className="animation-hint">{settings.animation === 'typewriter' ? t('typewriterHint') : t('animationHint')}</p></div>
   </>
 
   const renderTransitionEditor = (clip: Clip) => {
@@ -812,10 +926,31 @@ function App() {
   const exportVideo = async () => {
     const video = videoRef.current
     const canvas = canvasRef.current
-    if (!videoUrl || !video || !canvas) return setToast(t('exportFirst'))
+    const orderedVideoClips = clips.filter((item) => item.sourceUrl).sort((a, b) => a.start - b.start)
+    if (!orderedVideoClips.length || !video || !canvas) return setToast(t('exportFirst'))
     setIsExporting(true)
     setToast(t('preparingVideo'))
     try {
+      const loadVideoClip = async (clip: Clip) => {
+        if (video.getAttribute('src') !== clip.sourceUrl) {
+          video.pause()
+          video.src = clip.sourceUrl
+          video.load()
+          await new Promise<void>((resolve, reject) => {
+            const loaded = () => { cleanup(); resolve() }
+            const failed = () => { cleanup(); reject(new Error('video-load-failed')) }
+            const cleanup = () => { video.removeEventListener('loadeddata', loaded); video.removeEventListener('error', failed) }
+            video.addEventListener('loadeddata', loaded)
+            video.addEventListener('error', failed)
+          })
+        }
+        const wanted = Math.max(0, clip.offset)
+        if (Math.abs(video.currentTime - wanted) > .02) {
+          video.currentTime = wanted
+          await new Promise<void>((resolve) => video.addEventListener('seeked', () => resolve(), { once: true }))
+        }
+      }
+      await loadVideoClip(orderedVideoClips[0])
       const ctx = canvas.getContext('2d')!
       canvas.width = video.videoWidth || 1280
       canvas.height = video.videoHeight || 720
@@ -826,7 +961,6 @@ function App() {
       else mediaStreamVideo.captureStream?.().getAudioTracks().forEach((track) => stream.addTrack(track))
       const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' })
       const exportTransitionVideo = document.createElement('video')
-      exportTransitionVideo.src = videoUrl
       exportTransitionVideo.preload = 'auto'
       exportTransitionVideo.muted = true
       exportTransitionVideo.playbackRate = speed
@@ -834,9 +968,7 @@ function App() {
       const chunks: Blob[] = []
       recorder.ondataavailable = (event) => event.data.size && chunks.push(event.data)
       const finished = new Promise<void>((resolve) => { recorder.onstop = () => resolve() })
-      video.currentTime = 0
       video.muted = true
-      await video.play()
       recorder.start(250)
       const drawVideoLayer = (source: HTMLVideoElement, frame: VisualFrame) => {
         if (source.readyState < 2 || frame.opacity <= 0) return
@@ -848,10 +980,7 @@ function App() {
         ctx.drawImage(source, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height)
         ctx.restore()
       }
-      const draw = () => {
-        if (video.paused || video.ended) return
-        const exportTime = video.currentTime
-        const exportClip = clips.find((item) => exportTime >= item.start && exportTime < item.start + item.duration)
+      const renderFrame = (exportTime: number, exportClip?: Clip) => {
         const exportPrevious = exportClip ? [...clips].filter((item) => item.trackId === exportClip.trackId && item.start < exportClip.start).sort((a, b) => b.start - a.start)[0] : undefined
         const adjacent = Boolean(exportClip && exportPrevious && Math.abs(exportPrevious.start + exportPrevious.duration - exportClip.start) < .11)
         const transition = exportClip && adjacent ? transitionFrame(exportClip.transition, exportClip.start, Math.min(exportClip.transitionDuration, exportClip.duration, exportPrevious!.duration), exportTime) : transitionFrame('none', 0, 1, 0)
@@ -862,20 +991,46 @@ function App() {
         if (transition.active && exportClip && exportPrevious) {
           const transitionDuration = Math.min(exportClip.transitionDuration, exportClip.duration, exportPrevious.duration)
           const wanted = exportPrevious.offset + exportPrevious.duration - transitionDuration + (exportTime - exportClip.start)
-          if (Math.abs(exportTransitionVideo.currentTime - wanted) > .1) exportTransitionVideo.currentTime = Math.max(exportPrevious.offset, wanted)
-          if (exportTransitionVideo.paused) void exportTransitionVideo.play().catch(() => undefined)
-          drawVideoLayer(exportTransitionVideo, transition.previous)
+          if (exportTransitionVideo.getAttribute('src') !== exportPrevious.sourceUrl) { exportTransitionVideo.src = exportPrevious.sourceUrl; exportTransitionVideo.load() }
+          if (exportTransitionVideo.readyState >= 1) {
+            if (Math.abs(exportTransitionVideo.currentTime - wanted) > .1) exportTransitionVideo.currentTime = Math.max(exportPrevious.offset, wanted)
+            if (exportTransitionVideo.paused) void exportTransitionVideo.play().catch(() => undefined)
+            drawVideoLayer(exportTransitionVideo, transition.previous)
+          }
         } else exportTransitionVideo.pause()
-        drawVideoLayer(video, videoFrame)
+        if (exportClip) drawVideoLayer(video, videoFrame)
         textClips.filter((item) => exportTime >= item.start && exportTime < item.start + item.duration).forEach((item) => {
           const frame = animationFrame(item.animation, item.start, item.duration, item.animationDuration, exportTime)
+          const displayText = animatedText(item.text, item.animation, item.start, item.duration, item.animationDuration, exportTime)
+          const fontSize = Math.max(16, item.fontSize * canvas.width / 720)
+          const letterSpacing = item.letterSpacing * canvas.width / 720
           ctx.save()
           ctx.globalAlpha = item.opacity / 100 * frame.opacity
-          ctx.font = `${item.bold ? 700 : 400} ${Math.max(16, item.fontSize * canvas.width / 720)}px ${item.fontFamily}`
-          ctx.textAlign = 'center'; ctx.fillStyle = item.color; ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 14
+          ctx.font = `${item.bold ? 700 : 400} ${fontSize}px ${item.fontFamily}`
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = item.color
           ctx.translate(canvas.width * (item.x + frame.x) / 100, canvas.height * (item.y + frame.y) / 100)
           ctx.scale(frame.scale, frame.scale)
-          ctx.fillText(item.text, 0, 0)
+          if (item.textEffect === 'background') {
+            const textWidth = measureSpacedText(ctx, displayText, letterSpacing)
+            const horizontalPadding = fontSize * .42
+            const verticalPadding = fontSize * .2
+            ctx.fillStyle = hexToRgba(item.backgroundColor, item.backgroundOpacity / 100)
+            ctx.fillRect(-textWidth / 2 - horizontalPadding, -fontSize / 2 - verticalPadding, textWidth + horizontalPadding * 2, fontSize + verticalPadding * 2)
+            ctx.fillStyle = item.color
+          }
+          if (item.textEffect === 'shadow') {
+            ctx.shadowColor = item.effectColor; ctx.shadowBlur = fontSize * .18; ctx.shadowOffsetY = fontSize * .12
+          }
+          if (item.textEffect === 'glow' || item.textEffect === 'neon') {
+            ctx.shadowColor = item.effectColor; ctx.shadowBlur = fontSize * (item.textEffect === 'neon' ? .55 : .38)
+          }
+          if (item.textEffect === 'outline' || item.textEffect === 'neon') {
+            ctx.strokeStyle = item.strokeColor
+            ctx.lineWidth = Math.max(1, item.strokeWidth * canvas.width / 720 * (item.textEffect === 'neon' ? .5 : 2))
+            ctx.lineJoin = 'round'
+            drawSpacedText(ctx, displayText, letterSpacing, 'stroke')
+          }
+          drawSpacedText(ctx, displayText, letterSpacing, 'fill')
           ctx.restore()
         })
         stickerClips.filter((item) => exportTime >= item.start && exportTime < item.start + item.duration).forEach((item) => {
@@ -893,7 +1048,7 @@ function App() {
           ctx.drawImage(image, -size / 2, -size / 2, size, size)
           ctx.restore()
         })
-        captionClips.filter((item) => video.currentTime >= item.start && video.currentTime < item.start + item.duration).forEach((item) => {
+        captionClips.filter((item) => exportTime >= item.start && exportTime < item.start + item.duration).forEach((item) => {
           const captionText = item.text.replace(/\s*\n\s*/g, ' ')
           const fontSize = Math.max(18, 30 * canvas.width / 1280)
           ctx.globalAlpha = 1
@@ -908,10 +1063,38 @@ function App() {
           ctx.strokeText(captionText, canvas.width / 2, canvas.height * .88)
           ctx.fillText(captionText, canvas.width / 2, canvas.height * .88)
         })
-        requestAnimationFrame(draw)
       }
-      draw()
-      await new Promise<void>((resolve) => video.addEventListener('ended', () => resolve(), { once: true }))
+      let timelineCursor = 0
+      for (const clip of orderedVideoClips) {
+        if (clip.start > timelineCursor) {
+          const gapStart = performance.now()
+          await new Promise<void>((resolve) => {
+            const drawGap = () => {
+              const exportTime = timelineCursor + (performance.now() - gapStart) / 1000 * speed
+              renderFrame(Math.min(clip.start, exportTime))
+              if (exportTime >= clip.start) resolve()
+              else requestAnimationFrame(drawGap)
+            }
+            drawGap()
+          })
+        }
+        await loadVideoClip(clip)
+        video.playbackRate = speed
+        video.muted = true
+        await video.play()
+        await new Promise<void>((resolve) => {
+          const drawClip = () => {
+            const exportTime = Math.min(clip.start + clip.duration, clip.start + video.currentTime - clip.offset)
+            renderFrame(exportTime, clip)
+            setCurrentTime(exportTime)
+            if (video.ended || video.currentTime >= clip.offset + clip.duration - .02) resolve()
+            else requestAnimationFrame(drawClip)
+          }
+          drawClip()
+        })
+        video.pause()
+        timelineCursor = clip.start + clip.duration
+      }
       exportTransitionVideo.pause()
       recorder.stop(); await finished
       const blob = new Blob(chunks, { type: 'video/webm' })
@@ -919,7 +1102,7 @@ function App() {
       link.href = URL.createObjectURL(blob); link.download = `${fileName.replace(/\.[^.]+$/, '')}-lumacut.webm`; link.click()
       URL.revokeObjectURL(link.href)
       setToast(t('exportSuccess'))
-      video.muted = isAudioDetached
+      video.muted = isCurrentVideoDetached
     } catch { setToast(t('exportFailed')) }
     finally { setIsExporting(false) }
   }
@@ -940,16 +1123,16 @@ function App() {
           <div className="panel-heading"><div><span>{t('myLibrary')}</span><h2>{t(toolItems.find((item) => item.id === activeTool)?.labelKey ?? 'media')}</h2></div><button className="icon-button"><X size={16} /></button></div>
           {activeTool === 'media' && <>
             <button className="import-button" onClick={() => fileInput.current?.click()}><Plus size={17} />{t('importMedia')}</button>
-            <input ref={fileInput} type="file" accept="video/*" onChange={(event: ChangeEvent<HTMLInputElement>) => importFile(event.target.files?.[0])} hidden />
+            <input ref={fileInput} type="file" accept="video/*" multiple onChange={(event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []); event.currentTarget.value = ''; void importFiles(files) }} hidden />
             <p className="section-label">{t('inProject')}</p>
-            <button className="media-card" onClick={() => fileInput.current?.click()}><div className="media-thumb"><div className="thumb-sun" /><div className="thumb-mountain" /><CirclePlay size={24} /></div><div className="media-meta"><strong>{fileName}</strong><span>{formatTime(duration).slice(0, 5)} · {videoUrl ? t('yourFile') : t('sample')}</span></div></button>
-            <button className={`extract-audio-button ${isAudioDetached ? 'done' : ''}`} onClick={detachAudioFromVideo} disabled={!videoUrl || isAudioDetached}><AudioLines size={17}/>{isAudioDetached ? t('detachedDone') : t('detachAudio')}</button>
+            <div className="media-list">{videoAssets.length ? videoAssets.map((asset, index) => <button key={asset.id} className="media-card" onClick={() => { const clip = clips.find((item) => item.sourceUrl === asset.url); if (clip) { setSelectedClip(clip.id); seek(clip.start) } }}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><b>{index + 1}</b><CirclePlay size={24}/></div><div className="media-meta"><strong>{asset.name}</strong><span>{formatTime(asset.duration).slice(0, 5)} · {t('yourFile')}</span></div></button>) : <button className="media-card" onClick={() => fileInput.current?.click()}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></div><div className="media-meta"><strong>{fileName}</strong><span>{formatTime(duration).slice(0, 5)} · {t('sample')}</span></div></button>}</div>
+            <button className={`extract-audio-button ${isSelectedVideoDetached ? 'done' : ''}`} onClick={detachAudioFromVideo} disabled={!selectedVideoSource || isSelectedVideoDetached}><AudioLines size={17}/>{isSelectedVideoDetached ? t('detachedDone') : t('detachAudio')}</button>
             <div className="media-card empty"><FolderOpen size={22} /><span>{t('dropVideo')}</span></div>
           </>}
           {activeTool === 'text' && <div className="text-tools">
             <button className="import-button" onClick={() => addText()}><Plus size={17} />{t('addText')}</button>
-            <p className="section-label">{t('quickStyles')}</p>
-            <div className="text-presets"><button className="preset-bold" onClick={() => addText(t('heading'))}>{t('heading')}</button><button className="preset-caption" onClick={() => addText(t('captionPreset'))}>{t('captionPreset')}</button></div>
+            <p className="section-label">{t('textTemplates')}</p>
+            <div className="text-template-grid">{textTemplates.map((template) => <button key={template.labelKey} className={`text-template-card ${template.className}`} onClick={() => addText(t(template.textKey), template.style)} title={t(template.labelKey)}><span>{template.sample}</span><small>{t(template.labelKey)}</small></button>)}</div>
             <p className="section-label">{t('textLayers')}</p>
             <div className="text-layer-list">{textClips.map((item) => <button key={item.id} className={selectedTextClip === item.id ? 'active' : ''} onClick={() => {setSelectedTextClip(item.id);setSelectedStickerClip(0);setSelectedClip(0);setSelectedAudioClip(0);setSelectedCaptionClip(0)}}><TextCursorInput size={14}/><span>{item.text}</span><small>{item.duration.toFixed(1)}s</small></button>)}</div>
           </div>}
@@ -972,17 +1155,19 @@ function App() {
           {activeTool === 'effects' && <div className="effect-grid">{(['film','lightLeak','blur','grain','VHS','soft'] as const).map((name, i) => <button key={name} style={{'--hue': `${195 + i * 22}`} as React.CSSProperties}><WandSparkles size={18}/><span>{name === 'VHS' ? name : t(name)}</span></button>)}</div>}
           {activeTool === 'stickers' && <div className="sticker-library">
             <input value={stickerSearch} onChange={(event) => setStickerSearch(event.target.value)} placeholder={t('searchStickers')}/>
-            <div className="sticker-grid">{filteredStickerAssets.map((asset) => <button key={asset.src} onClick={() => addSticker(asset)} title={asset.name}><img src={asset.src} alt=""/><span>{asset.name}</span></button>)}</div>
+            <div className="sticker-category-tabs"><button className={stickerCategory === 'all' ? 'active' : ''} onClick={() => setStickerCategory('all')}>{t('allAssets')}</button><button className={stickerCategory === 'sticker' ? 'active' : ''} onClick={() => setStickerCategory('sticker')}>{t('stillStickers')}</button><button className={stickerCategory === 'gif' ? 'active' : ''} onClick={() => setStickerCategory('gif')}>{t('gifMemes')}</button></div>
+            <div className="sticker-grid">{filteredStickerAssets.map((asset) => <button key={asset.src} className={asset.kind === 'gif' ? 'gif-asset' : ''} onClick={() => addSticker(asset)} title={asset.name}><img src={asset.src} alt=""/>{asset.kind === 'gif' && <b>GIF</b>}<span>{asset.name}</span></button>)}</div>
             {!filteredStickerAssets.length && <div className="caption-empty">{t('noStickers')}</div>}
             <a className="sticker-credit" href="https://openmoji.org/" target="_blank" rel="noreferrer">{t('stickerCredit')}</a>
+            <p className="sticker-credit meme-credit">{t('memeGifCredit')}</p>
           </div>}
         </aside>
 
         <section className="editor-stage"><div className="preview-wrap">
           <div className="preview-canvas">
-            {currentTransition.active && previousVideoClip && <div className="preview-media-layer transition-outgoing" style={{filter, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x}%, ${currentTransition.previous.y}%) scale(${currentTransition.previous.scale})`}}>{videoUrl ? <video ref={transitionVideoRef} src={videoUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
-            <div className="preview-media-layer" style={{filter, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x}%, ${videoMotion.y}%) scale(${videoMotion.scale})`}}>{videoUrl ? <video ref={videoRef} src={videoUrl} muted={isAudioDetached} onLoadedMetadata={(e) => { const d = e.currentTarget.duration; setDuration(d); setClips((items) => items.map((item, i) => i === 0 ? {...item, duration: d, sourceDuration: d} : item)); if (isAudioDetached) setAudioClips((items) => items.map((item) => item.sourceUrl === videoUrl ? {...item, duration: d, sourceDuration: d} : item)) }} onTimeUpdate={(e) => { const clip = clips.find((item) => currentTime >= item.start && currentTime < item.start + item.duration); if (!clip) return; const mapped = clip.start + e.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { e.currentTarget.currentTime = next.offset; setCurrentTime(next.start) } else { e.currentTarget.pause(); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
-            {textClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); return <div key={item.id} className={`video-text-layer ${selectedTextClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, fontSize: item.fontSize, fontFamily: item.fontFamily, color: item.color, opacity: item.opacity / 100 * motion.opacity, fontWeight: item.bold ? 700 : 400, transform: `translate(-50%, -50%) scale(${motion.scale})`}} onPointerDown={(e) => beginTextPosition(e, item)} onPointerMove={moveTextPosition} onPointerUp={endTextPosition} onPointerCancel={endTextPosition}><span>{item.text}</span>{selectedTextClip === item.id && <><i className="text-handle nw"/><i className="text-handle ne"/><i className="text-handle sw"/><i className="text-handle se"/></>}</div>})}
+            {currentTransition.active && previousVideoClip && <div className="preview-media-layer transition-outgoing" style={{filter, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x}%, ${currentTransition.previous.y}%) scale(${currentTransition.previous.scale})`}}>{previousVideoClip.sourceUrl ? <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
+            <div className="preview-media-layer" style={{filter, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x}%, ${videoMotion.y}%) scale(${videoMotion.scale})`}}>{previewVideoUrl ? <video ref={videoRef} src={previewVideoUrl} muted={isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
+            {textClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); const isTyping = item.animation === 'typewriter' && currentTime < item.start + Math.min(item.animationDuration, item.duration); return <div key={item.id} className={`video-text-layer ${selectedTextClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, fontSize: item.fontSize, fontFamily: item.fontFamily, color: item.color, opacity: item.opacity / 100 * motion.opacity, fontWeight: item.bold ? 700 : 400, transform: `translate(-50%, -50%) scale(${motion.scale})`, ...textEffectStyle(item)}} onPointerDown={(e) => beginTextPosition(e, item)} onPointerMove={moveTextPosition} onPointerUp={endTextPosition} onPointerCancel={endTextPosition}><span className={isTyping ? 'typewriter-active' : ''}>{animatedText(item.text, item.animation, item.start, item.duration, item.animationDuration, currentTime)}</span>{selectedTextClip === item.id && <><i className="text-handle nw"/><i className="text-handle ne"/><i className="text-handle sw"/><i className="text-handle se"/></>}</div>})}
             {stickerClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); return <button key={item.id} className={`video-sticker-layer ${selectedStickerClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, width: `${item.size}%`, opacity: item.opacity / 100 * motion.opacity, transform: `translate(-50%, -50%) rotate(${item.rotation}deg) scale(${motion.scale})`}} onPointerDown={(event) => beginStickerPosition(event, item)} onPointerMove={moveStickerPosition} onPointerUp={endStickerPosition} onPointerCancel={endStickerPosition}><img src={item.src} alt={item.name}/></button>})}
             {captionClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => <button key={item.id} className={`video-caption-layer ${selectedCaptionClip === item.id ? 'selected' : ''}`} onClick={(event) => {event.stopPropagation();setSelectedCaptionClip(item.id);setSelectedStickerClip(0);setSelectedTextClip(0);setSelectedClip(0);setSelectedAudioClip(0);setActiveTool('captions')}}>{item.text}</button>)}
           </div>
@@ -1004,12 +1189,19 @@ function App() {
             {captionInspectorTab === 'caption' ? <div className="property-section caption-inspector"><h3><Captions size={16}/>{t('editCaption')}</h3><textarea value={activeCaptionClip.text} onChange={(event) => updateCaption({text: event.target.value})}/></div> : <div className="property-section text-timing"><h3><Gauge size={16}/>{t('displayTime')}</h3><label>{t('start')}<input type="number" min="0" step="0.1" value={activeCaptionClip.start} onChange={(event) => updateCaption({start: Math.max(0, Number(event.target.value))})}/><span>{t('seconds')}</span></label><label>{t('duration')}<input type="number" min="0.2" step="0.1" value={activeCaptionClip.duration} onChange={(event) => updateCaption({duration: Math.max(.2, Number(event.target.value))})}/><span>{t('seconds')}</span></label></div>}
             <button className="delete-text-button" onClick={deleteClip}><Trash2 size={14}/>{t('deleteCaption')}</button>
           </> : activeTextClip ? <>
-            <div className="properties-tabs"><button className={textInspectorTab === 'text' ? 'active' : ''} onClick={() => setTextInspectorTab('text')}>{t('text')}</button><button className={textInspectorTab === 'style' ? 'active' : ''} onClick={() => setTextInspectorTab('style')}>{t('style')}</button><button className={textInspectorTab === 'animation' ? 'active' : ''} onClick={() => setTextInspectorTab('animation')}>{t('animation')}</button></div>
+            <div className="properties-tabs text-tabs"><button className={textInspectorTab === 'text' ? 'active' : ''} onClick={() => setTextInspectorTab('text')}>{t('text')}</button><button className={textInspectorTab === 'style' ? 'active' : ''} onClick={() => setTextInspectorTab('style')}>{t('style')}</button><button className={textInspectorTab === 'effects' ? 'active' : ''} onClick={() => setTextInspectorTab('effects')}>{t('textEffects')}</button><button className={textInspectorTab === 'animation' ? 'active' : ''} onClick={() => setTextInspectorTab('animation')}>{t('animation')}</button></div>
             {textInspectorTab === 'text' ? <div className="property-section text-inspector"><h3><TextCursorInput size={16}/>{t('editText')}</h3><textarea value={activeTextClip.text} onChange={(e) => updateText({text: e.target.value})}/><div className="text-style-row"><button className={activeTextClip.bold ? 'active' : ''} onClick={() => updateText({bold: !activeTextClip.bold})}>B</button><label className="color-pick"><input type="color" value={activeTextClip.color} onChange={(e) => updateText({color: e.target.value})}/><span style={{background: activeTextClip.color}}/></label></div></div> : textInspectorTab === 'style' ? <>
             <div className="property-section"><h3><SlidersHorizontal size={16}/>{t('format')}</h3><label className="font-select-label">{t('font')}<select value={activeTextClip.fontFamily} onChange={(e) => updateText({fontFamily: e.target.value})} aria-label={t('font')}>{fontOptions.map((font) => <option key={font.value} value={font.value} style={{fontFamily: font.value}}>{font.label}</option>)}</select></label><label>{t('size')} <span>{activeTextClip.fontSize}px</span><input type="range" min="14" max="96" value={activeTextClip.fontSize} onChange={(e) => updateText({fontSize: Number(e.target.value)})}/></label><label>{t('opacity')} <span>{activeTextClip.opacity}%</span><input type="range" min="10" max="100" value={activeTextClip.opacity} onChange={(e) => updateText({opacity: Number(e.target.value)})}/></label></div>
             <div className="property-section"><h3><MousePointer2 size={16}/>{t('position')}</h3><label>{t('horizontal')} <span>{Math.round(activeTextClip.x)}%</span><input type="range" min="0" max="100" value={activeTextClip.x} onChange={(e) => updateText({x: Number(e.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeTextClip.y)}%</span><input type="range" min="0" max="100" value={activeTextClip.y} onChange={(e) => updateText({y: Number(e.target.value)})}/></label></div>
             <div className="property-section text-timing"><h3><Gauge size={16}/>{t('displayTime')}</h3><label>{t('start')}<input type="number" min="0" step="0.1" value={activeTextClip.start} onChange={(e) => updateText({start: Math.max(0, Number(e.target.value))})}/><span>{t('seconds')}</span></label><label>{t('duration')}<input type="number" min="0.2" step="0.1" value={activeTextClip.duration} onChange={(e) => updateText({duration: Math.max(.2, Number(e.target.value))})}/><span>{t('seconds')}</span></label></div>
-            </> : renderAnimationEditor(activeTextClip, updateText, activeTextClip.start, activeTextClip.duration)}
+            </> : textInspectorTab === 'effects' ? <>
+            <div className="property-section"><h3><Sparkles size={16}/>{t('textEffects')}</h3><div className="text-effect-grid">{textEffectOptions.map((effect) => <button key={effect.value} className={activeTextClip.textEffect === effect.value ? 'active' : ''} onClick={() => updateText({textEffect: effect.value})}><span className={`effect-sample effect-${effect.value}`}>Aa</span><small>{t(effect.labelKey)}</small></button>)}</div></div>
+            <div className="property-section text-effect-controls"><h3><SlidersHorizontal size={16}/>{t('effectSettings')}</h3><label>{t('letterSpacing')} <span>{activeTextClip.letterSpacing}px</span><input type="range" min="-2" max="12" step="1" value={activeTextClip.letterSpacing} onChange={(e) => updateText({letterSpacing: Number(e.target.value)})}/></label>
+            {(activeTextClip.textEffect === 'outline' || activeTextClip.textEffect === 'neon') && <><label>{t('outlineWidth')} <span>{activeTextClip.strokeWidth}px</span><input type="range" min="1" max="10" step="1" value={activeTextClip.strokeWidth} onChange={(e) => updateText({strokeWidth: Number(e.target.value)})}/></label><label className="effect-color-row">{t('outlineColor')}<input type="color" value={activeTextClip.strokeColor} onChange={(e) => updateText({strokeColor: e.target.value})}/></label></>}
+            {(activeTextClip.textEffect === 'shadow' || activeTextClip.textEffect === 'glow' || activeTextClip.textEffect === 'neon') && <label className="effect-color-row">{t('effectColor')}<input type="color" value={activeTextClip.effectColor} onChange={(e) => updateText({effectColor: e.target.value})}/></label>}
+            {activeTextClip.textEffect === 'background' && <><label className="effect-color-row">{t('backgroundColor')}<input type="color" value={activeTextClip.backgroundColor} onChange={(e) => updateText({backgroundColor: e.target.value})}/></label><label>{t('backgroundOpacity')} <span>{activeTextClip.backgroundOpacity}%</span><input type="range" min="0" max="100" value={activeTextClip.backgroundOpacity} onChange={(e) => updateText({backgroundOpacity: Number(e.target.value)})}/></label></>}
+            {activeTextClip.textEffect === 'none' && <p className="effect-help">{t('effectHint')}</p>}</div>
+            </> : renderAnimationEditor(activeTextClip, updateText, activeTextClip.start, activeTextClip.duration, true)}
             <button className="delete-text-button" onClick={deleteClip}><Trash2 size={14}/>{t('deleteText')}</button>
           </> : <>
             <div className="properties-tabs video-tabs"><button className={videoInspectorTab === 'video' ? 'active' : ''} onClick={() => setVideoInspectorTab('video')}>{t('video')}</button><button className={videoInspectorTab === 'animation' ? 'active' : ''} onClick={() => setVideoInspectorTab('animation')}>{t('animation')}</button><button className={videoInspectorTab === 'transition' ? 'active' : ''} onClick={() => setVideoInspectorTab('transition')}>{t('transition')}</button><button className={videoInspectorTab === 'adjust' ? 'active' : ''} onClick={() => setVideoInspectorTab('adjust')}>{t('adjust')}</button></div>

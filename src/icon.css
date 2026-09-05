@@ -436,6 +436,34 @@
   border-color: #75ead7;
 }
 
+.sticker-category-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  padding: 3px;
+  border-radius: 7px;
+  background: #111318;
+}
+
+.sticker-category-tabs button {
+  min-width: 0;
+  height: 27px;
+  padding: 0 4px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #777d88;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticker-category-tabs button.active {
+  background: #293532;
+  color: #75ead7;
+}
+
 .sticker-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -443,6 +471,7 @@
 }
 
 .sticker-grid button {
+  position: relative;
   min-width: 0;
   height: 78px;
   padding: 7px 4px 5px;
@@ -455,6 +484,22 @@
   align-items: center;
   justify-content: space-between;
   gap: 4px;
+}
+
+.sticker-grid button.gif-asset {
+  background: radial-gradient(circle at 50% 36%, #313544, #22242b 72%);
+}
+
+.sticker-grid button > b {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px 3px;
+  border-radius: 3px;
+  background: #75ead7;
+  color: #071411;
+  font-size: 6px;
+  letter-spacing: .4px;
 }
 
 .sticker-grid button:hover {
@@ -487,6 +532,10 @@
 
 .sticker-credit:hover {
   color: #75ead7;
+}
+
+.meme-credit {
+  margin: -5px 0 0;
 }
 
 .video-sticker-layer {
@@ -719,6 +768,29 @@
 .animation-swatch.zoom-in { transform: scale(.72); box-shadow: 0 0 0 3px rgba(117, 234, 215, .2); }
 .animation-swatch.slide-up { transform: translateY(-4px); box-shadow: 0 5px 0 rgba(117, 234, 215, .18); }
 .animation-swatch.slide-left { transform: translateX(-4px); box-shadow: 5px 0 0 rgba(117, 234, 215, .18); }
+.animation-swatch.typewriter {
+  position: relative;
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 2px solid #75ead7;
+}
+.animation-swatch.typewriter::before { content: 'T'; position: absolute; left: 3px; bottom: 1px; color: #d9fff8; font: 700 17px/1 monospace; }
+.animation-swatch.typewriter::after { content: ''; position: absolute; left: 17px; bottom: 1px; width: 2px; height: 17px; background: #75ead7; animation: typewriter-caret .7s steps(1) infinite; }
+
+.video-text-layer .typewriter-active::after {
+  content: '';
+  display: inline-block;
+  width: .07em;
+  height: .92em;
+  margin-left: .08em;
+  vertical-align: -.06em;
+  background: currentColor;
+  animation: typewriter-caret .7s steps(1) infinite;
+}
+
+@keyframes typewriter-caret {
+  50% { opacity: 0; }
+}
 
 .animation-hint {
   margin: 14px 0 0;
