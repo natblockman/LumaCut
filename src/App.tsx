@@ -3,7 +3,7 @@ import type { ChangeEvent, CSSProperties, DragEvent, PointerEvent as ReactPointe
 import {
   AudioLines, Captions, Check, ChevronDown, CirclePlay, Crop, Download,
   Film, FolderOpen, Gauge, Globe2, Menu, Mic2, MousePointer2,
-  Music2, Pause, Play, Plus, Redo2, RotateCcw, Save, Scissors, Settings2, Square,
+  Magnet, Music2, Pause, Play, Plus, Redo2, RotateCcw, Save, Scissors, Settings2, Square,
   SlidersHorizontal, Sparkles, Sticker, TextCursorInput,
   Trash2, Undo2, Upload, Volume2, WandSparkles, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
@@ -25,7 +25,8 @@ type VideoEffectSettings = { videoEffect: VideoEffectPreset; effectIntensity: nu
 type TimelineTrack = { id: string; type: TrackType; label: string }
 type MediaKind = 'video' | 'image'
 type MediaTransform = { scale: number; positionX: number; positionY: number; cropLeft: number; cropRight: number; cropTop: number; cropBottom: number }
-type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; sourcePath?: string; embeddedSource?: string; color: string; mediaType: MediaKind; sourceWidth: number; sourceHeight: number } & MediaTransform & AnimationSettings & TransitionSettings & VideoEffectSettings
+type MediaFit = 'fit' | 'fill'
+type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; sourcePath?: string; embeddedSource?: string; color: string; mediaType: MediaKind; mediaFit: MediaFit; sourceWidth: number; sourceHeight: number } & MediaTransform & AnimationSettings & TransitionSettings & VideoEffectSettings
 type VideoAsset = { id: number; name: string; url: string; duration: number; sourcePath?: string; embeddedSource?: string; mediaType: MediaKind; width: number; height: number }
 type AudioClip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; sourcePath?: string; embeddedSource?: string; volume: number; fadeIn: number; fadeOut: number }
 type TextClip = { id: number; trackId: string; text: string; start: number; duration: number; x: number; y: number; fontSize: number; fontFamily: string; color: string; opacity: number; bold: boolean } & AnimationSettings & TextEffectSettings
@@ -38,9 +39,9 @@ const initialTracks: TimelineTrack[] = [
 ]
 
 const initialClips: Clip[] = [
-  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', mediaType: 'video', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
-  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', mediaType: 'video', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
-  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', mediaType: 'video', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
 ]
 const initialAudioClips: AudioClip[] = []
 const initialTextClips: TextClip[] = []
@@ -295,7 +296,8 @@ const canvasPresets: { value: Exclude<CanvasPreset, 'custom'>; width: number; he
 ]
 
 const defaultMediaTransform: MediaTransform = { scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0 }
-const normalizeClip = (clip: Clip): Clip => ({ ...clip, mediaType: clip.mediaType ?? 'video', sourceWidth: clip.sourceWidth ?? 1920, sourceHeight: clip.sourceHeight ?? 1080, scale: clip.scale ?? 100, positionX: clip.positionX ?? 0, positionY: clip.positionY ?? 0, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
+const clampMediaScale = (value: number) => Math.max(1, Math.min(1000, Number.isFinite(value) ? value : 100))
+const normalizeClip = (clip: Clip): Clip => ({ ...clip, mediaType: clip.mediaType ?? 'video', mediaFit: clip.mediaFit ?? 'fill', sourceWidth: clip.sourceWidth ?? 1920, sourceHeight: clip.sourceHeight ?? 1080, scale: clip.scale ?? 100, positionX: clip.positionX ?? 0, positionY: clip.positionY ?? 0, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
 const normalizeSticker = (clip: StickerClip): StickerClip => ({ ...clip, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
 
 const exportResolutionOptions: { value: ExportResolution; width: number; height: number; label: string }[] = [
@@ -343,6 +345,7 @@ type ProjectDocument = {
     canvasPreset: CanvasPreset
     canvasWidth: number
     canvasHeight: number
+    snappingEnabled: boolean
   }
 }
 
@@ -375,6 +378,7 @@ function App() {
   const textPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
   const stickerPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
   const mediaPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
+  const mediaScaleRef = useRef<{ id: number; centerX: number; centerY: number; distance: number; scale: number } | null>(null)
   const stickerImagesRef = useRef(new Map<string, HTMLImageElement>())
   const importedGifUrlsRef = useRef<string[]>([])
   const zoomDragRef = useRef<{ x: number; zoom: number } | null>(null)
@@ -435,6 +439,7 @@ function App() {
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>('16:9')
   const [canvasWidth, setCanvasWidth] = useState(1920)
   const [canvasHeight, setCanvasHeight] = useState(1080)
+  const [snappingEnabled, setSnappingEnabled] = useState(true)
   const [exportPath, setExportPath] = useState('')
   const [exportProgress, setExportProgress] = useState(0)
   const [exportEtaSeconds, setExportEtaSeconds] = useState<number | null>(null)
@@ -470,6 +475,17 @@ function App() {
   const previewMediaType = previewMediaClip?.mediaType ?? 'video'
   const previewCrop = previewMediaClip ? `inset(${previewMediaClip.cropTop}% ${previewMediaClip.cropRight}% ${previewMediaClip.cropBottom}% ${previewMediaClip.cropLeft}%)` : undefined
   const outgoingCrop = previousVideoClip ? `inset(${previousVideoClip.cropTop}% ${previousVideoClip.cropRight}% ${previousVideoClip.cropBottom}% ${previousVideoClip.cropLeft}%)` : undefined
+  const previewMediaSelectionStyle: CSSProperties = (() => {
+    if (!previewMediaClip || previewMediaClip.mediaFit !== 'fit') return { inset: 0 }
+    const sourceRatio = Math.max(.0001, previewMediaClip.sourceWidth / previewMediaClip.sourceHeight)
+    const canvasRatio = Math.max(.0001, canvasWidth / canvasHeight)
+    if (sourceRatio >= canvasRatio) {
+      const height = canvasRatio / sourceRatio * 100
+      return { left: 0, right: 0, top: `${(100 - height) / 2}%`, height: `${height}%` }
+    }
+    const width = sourceRatio / canvasRatio * 100
+    return { top: 0, bottom: 0, left: `${(100 - width) / 2}%`, width: `${width}%` }
+  })()
   const isCurrentVideoDetached = Boolean(currentVideoClip && audioClips.some((item) => item.sourceUrl === currentVideoClip.sourceUrl))
   const selectedVideoSource = activeClip?.sourceUrl || currentVideoClip?.sourceUrl || ''
   const isSelectedVideoDetached = Boolean(selectedVideoSource && audioClips.some((item) => item.sourceUrl === selectedVideoSource))
@@ -727,7 +743,7 @@ function App() {
     setClips((items) => {
       const realClips = items.filter((item) => item.sourceUrl)
       const start = Math.max(0, ...realClips.map((item) => item.start + item.duration))
-      const next: Clip = { id, trackId, label: file.name.replace(/\.[^.]+$/, ''), start, duration: displayDuration, offset: 0, sourceDuration, sourceUrl: url, sourcePath, color: palette[realClips.length % palette.length], mediaType, sourceWidth: metadata.width, sourceHeight: metadata.height, ...defaultMediaTransform, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 }
+      const next: Clip = { id, trackId, label: file.name.replace(/\.[^.]+$/, ''), start, duration: displayDuration, offset: 0, sourceDuration, sourceUrl: url, sourcePath, color: palette[realClips.length % palette.length], mediaType, mediaFit: 'fill', sourceWidth: metadata.width, sourceHeight: metadata.height, ...defaultMediaTransform, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 }
       return [...realClips, next]
     })
     setDuration((current) => current + displayDuration)
@@ -875,6 +891,35 @@ function App() {
     setToast(t('deleted', { item: t('clip') }))
   }
 
+  const deleteMediaAsset = (asset: VideoAsset) => {
+    if (!window.confirm(t('deleteMediaConfirm', { name: asset.name }))) return
+    const removedClipIds = new Set(clips.filter((item) => item.sourceUrl === asset.url).map((item) => item.id))
+    const removedAudioIds = new Set(audioClips.filter((item) => item.sourceUrl === asset.url).map((item) => item.id))
+    const remainingAssets = videoAssets.filter((item) => item.id !== asset.id)
+    const remainingClips = clips.filter((item) => item.sourceUrl !== asset.url)
+    const remainingAudio = audioClips.filter((item) => item.sourceUrl !== asset.url)
+    const nextVisual = remainingClips.find((item) => item.sourceUrl)
+    const nextAudio = remainingAudio.find((item) => item.sourceUrl)
+    const remainingEnd = Math.max(0, ...remainingClips.map((item) => item.start + item.duration), ...remainingAudio.map((item) => item.start + item.duration), ...textClips.map((item) => item.start + item.duration), ...stickerClips.map((item) => item.start + item.duration), ...captionClips.map((item) => item.start + item.duration))
+    videoRef.current?.pause()
+    transitionVideoRef.current?.pause()
+    if (audioUrl === asset.url) audioRef.current?.pause()
+    setIsPlaying(false)
+    setVideoAssets(remainingAssets)
+    setClips(remainingClips)
+    setAudioClips(remainingAudio)
+    setDuration(remainingEnd || 15)
+    setCurrentTime((time) => Math.min(time, remainingEnd))
+    if (removedClipIds.has(selectedClip)) setSelectedClip(nextVisual?.id ?? 0)
+    if (removedAudioIds.has(selectedAudioClip)) setSelectedAudioClip(0)
+    if (videoUrl === asset.url) setVideoUrl(nextVisual?.sourceUrl ?? '')
+    if (audioUrl === asset.url) { setAudioUrl(nextAudio?.sourceUrl ?? ''); setAudioName(nextAudio?.label ?? '') }
+    setFileName(remainingAssets[0]?.name ?? 'travel_vlog_01.mp4')
+    setIsAudioDetached(remainingAudio.some((audioClip) => remainingClips.some((videoClip) => audioClip.sourceUrl === videoClip.sourceUrl)))
+    if (asset.url.startsWith('blob:')) setTimeout(() => URL.revokeObjectURL(asset.url), 0)
+    setToast(t('mediaDeleted', { name: asset.name }))
+  }
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const isTyping = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement
@@ -922,6 +967,10 @@ function App() {
   }
 
   const resetMediaTransform = () => updateVideoClip(defaultMediaTransform)
+  const setMediaFit = (mediaFit: MediaFit) => {
+    updateVideoClip({ ...defaultMediaTransform, mediaFit })
+    setToast(t(mediaFit === 'fit' ? 'fitApplied' : 'fillApplied'))
+  }
   const updateMediaCrop = (edge: keyof Pick<MediaTransform, 'cropLeft' | 'cropRight' | 'cropTop' | 'cropBottom'>, value: number) => {
     if (!activeClip) return
     const opposite = edge === 'cropLeft' ? activeClip.cropRight : edge === 'cropRight' ? activeClip.cropLeft : edge === 'cropTop' ? activeClip.cropBottom : activeClip.cropTop
@@ -1046,9 +1095,26 @@ function App() {
     const drag = dragRef.current
     if (!drag) return
     event.stopPropagation()
-    const next = Math.max(0, Math.round((drag.start + (event.clientX - drag.x) / pxPerSecond) * 10) / 10)
+    const desired = Math.max(0, Math.round((drag.start + (event.clientX - drag.x) / pxPerSecond) * 10) / 10)
     const hoveredTrack = (document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null)?.closest<HTMLElement>('.track[data-track-type]')
     const targetTrackId = hoveredTrack?.dataset.trackType === drag.kind ? hoveredTrack.dataset.trackId : undefined
+    const sourceItems: { id: number; start: number; duration: number; trackId: string }[] = drag.kind === 'video' ? clips : drag.kind === 'audio' ? audioClips : drag.kind === 'caption' ? captionClips : drag.kind === 'sticker' ? stickerClips : textClips
+    const movingItem = sourceItems.find((item) => item.id === drag.id)
+    const resolvedTrackId = targetTrackId ?? movingItem?.trackId
+    let next = desired
+    if (snappingEnabled && movingItem && resolvedTrackId) {
+      const siblings = sourceItems.filter((item) => item.id !== drag.id && item.trackId === resolvedTrackId)
+      const snapThreshold = Math.max(.08, 10 / pxPerSecond)
+      const snapPoints = [0, ...siblings.flatMap((item) => [item.start, item.start + item.duration, item.start - movingItem.duration, item.start + item.duration - movingItem.duration])].filter((value) => value >= 0)
+      const closestSnap = snapPoints.reduce((closest, value) => Math.abs(value - desired) < Math.abs(closest - desired) ? value : closest, snapPoints[0] ?? desired)
+      if (Math.abs(closestSnap - desired) <= snapThreshold) next = closestSnap
+      const overlaps = (candidate: number) => siblings.some((item) => candidate < item.start + item.duration - .001 && candidate + movingItem.duration > item.start + .001)
+      if (overlaps(next)) {
+        const validPositions = [0, ...siblings.flatMap((item) => [item.start - movingItem.duration, item.start + item.duration])].filter((value) => value >= 0 && !overlaps(value))
+        if (validPositions.length) next = validPositions.reduce((closest, value) => Math.abs(value - desired) < Math.abs(closest - desired) ? value : closest, validPositions[0])
+      }
+      next = Math.round(next * 1000) / 1000
+    }
     if (drag.kind === 'video') setClips((items) => items.map((item) => item.id === drag.id ? { ...item, start: next, trackId: targetTrackId ?? item.trackId } : item))
     else if (drag.kind === 'audio') setAudioClips((items) => items.map((item) => item.id === drag.id ? { ...item, start: next, trackId: targetTrackId ?? item.trackId } : item))
     else if (drag.kind === 'caption') setCaptionClips((items) => items.map((item) => item.id === drag.id ? { ...item, start: next, trackId: targetTrackId ?? item.trackId } : item))
@@ -1192,6 +1258,28 @@ function App() {
   }
   const endMediaPosition = () => { if (mediaPositionRef.current) { mediaPositionRef.current = null; setToast(t('mediaPositioned')) } }
 
+  const beginMediaScale = (event: ReactPointerEvent<HTMLButtonElement>, clip: Clip) => {
+    event.preventDefault(); event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId)
+    const canvas = event.currentTarget.closest('.preview-canvas')?.getBoundingClientRect()
+    if (!canvas) return
+    const centerX = canvas.left + canvas.width / 2
+    const centerY = canvas.top + canvas.height / 2
+    mediaScaleRef.current = { id: clip.id, centerX, centerY, distance: Math.max(1, Math.hypot(event.clientX - centerX, event.clientY - centerY)), scale: clip.scale }
+  }
+  const moveMediaScale = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = mediaScaleRef.current
+    if (!drag) return
+    event.preventDefault(); event.stopPropagation()
+    const distance = Math.max(1, Math.hypot(event.clientX - drag.centerX, event.clientY - drag.centerY))
+    const scale = clampMediaScale(drag.scale * distance / drag.distance)
+    setClips((items) => items.map((item) => item.id === drag.id ? { ...item, scale } : item))
+  }
+  const endMediaScale = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!mediaScaleRef.current) return
+    event.preventDefault(); event.stopPropagation(); mediaScaleRef.current = null
+    setToast(t('mediaResized'))
+  }
+
   const blobUrlToDataUrl = async (url: string) => {
     if (!url.startsWith('blob:')) return undefined
     const blob = await fetch(url).then((response) => response.blob())
@@ -1221,7 +1309,7 @@ function App() {
       const projectDocument: ProjectDocument = {
         format: 'lumacut-project', schemaVersion: 1, projectName: projectName.trim() || t('untitledProject'), savedAt: new Date().toISOString(), tracks,
         videoAssets: savedVideoAssets, clips: savedClips, audioClips: savedAudioClips, textClips, stickerClips: savedStickerClips, captionClips, importedGifAssets: savedGifAssets,
-        settings: { duration, currentTime, selectedClip, selectedAudioClip, selectedTextClip, selectedStickerClip, selectedCaptionClip, zoom, speed, volume, videoOpacity, brightness, contrast, saturation, exportCodec, exportResolution, exportFrameRate, canvasPreset, canvasWidth, canvasHeight },
+        settings: { duration, currentTime, selectedClip, selectedAudioClip, selectedTextClip, selectedStickerClip, selectedCaptionClip, zoom, speed, volume, videoOpacity, brightness, contrast, saturation, exportCodec, exportResolution, exportFrameRate, canvasPreset, canvasWidth, canvasHeight, snappingEnabled },
       }
       const contents = JSON.stringify(projectDocument, null, 2)
       const safeName = (projectDocument.projectName || 'lumacut-project').replace(/[\\/:*?"<>|]+/g, '-').trim() || 'lumacut-project'
@@ -1283,6 +1371,7 @@ function App() {
       setBrightness(settings?.brightness ?? 0); setContrast(settings?.contrast ?? 0); setSaturation(settings?.saturation ?? 0)
       setExportCodec(settings?.exportCodec ?? 'vp9'); setExportResolution(settings?.exportResolution ?? '1080p'); setExportFrameRate(settings?.exportFrameRate ?? 30)
       setCanvasPreset(settings?.canvasPreset ?? '16:9'); setCanvasWidth(settings?.canvasWidth ?? 1920); setCanvasHeight(settings?.canvasHeight ?? 1080)
+      setSnappingEnabled(settings?.snappingEnabled ?? true)
       const firstVideo = loadedClips.find((item) => item.sourceUrl)
       const firstAudio = loadedAudioClips.find((item) => item.sourceUrl)
       setVideoUrl(firstVideo?.sourceUrl ?? '')
@@ -1419,9 +1508,9 @@ function App() {
         const sourceY = naturalHeight * cropTop / 100
         const sourceWidth = Math.max(1, naturalWidth * (1 - (cropLeft + cropRight) / 100))
         const sourceHeight = Math.max(1, naturalHeight * (1 - (cropTop + cropBottom) / 100))
-        const coverScale = Math.max(canvas.width / sourceWidth, canvas.height / sourceHeight)
-        const drawWidth = sourceWidth * coverScale
-        const drawHeight = sourceHeight * coverScale
+        const canvasScale = effectClip?.mediaFit === 'fit' ? Math.min(canvas.width / sourceWidth, canvas.height / sourceHeight) : Math.max(canvas.width / sourceWidth, canvas.height / sourceHeight)
+        const drawWidth = sourceWidth * canvasScale
+        const drawHeight = sourceHeight * canvasScale
         ctx.save()
         ctx.filter = `${filter} ${videoEffectFilter(effectClip?.videoEffect ?? 'none', effectClip?.effectIntensity ?? 0)}`
         ctx.globalAlpha = frame.opacity * videoOpacity / 100
@@ -1664,7 +1753,7 @@ function App() {
             <button className="import-button" onClick={() => fileInput.current?.click()}><Plus size={17} />{t('importMedia')}</button>
             <input ref={fileInput} type="file" accept="video/*,image/jpeg,image/png,image/webp,image/bmp" multiple onChange={(event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []); event.currentTarget.value = ''; void importFiles(files) }} hidden />
             <p className="section-label">{t('inProject')}</p>
-            <div className="media-list">{videoAssets.length ? videoAssets.map((asset, index) => <button key={asset.id} className="media-card" onClick={() => { const clip = clips.find((item) => item.sourceUrl === asset.url); if (clip) { setSelectedClip(clip.id); seek(clip.start) } }}><div className={`media-thumb ${asset.mediaType === 'image' ? 'image-thumb' : ''}`}>{asset.mediaType === 'image' ? <img src={asset.url} alt=""/> : <><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></>}<b>{index + 1}</b></div><div className="media-meta"><strong>{asset.name}</strong><span>{asset.mediaType === 'image' ? t('stillImage') : formatTime(asset.duration).slice(0, 5)} · {t('yourFile')}</span></div></button>) : <button className="media-card" onClick={() => fileInput.current?.click()}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></div><div className="media-meta"><strong>{fileName}</strong><span>{formatTime(duration).slice(0, 5)} · {t('sample')}</span></div></button>}</div>
+            <div className="media-list">{videoAssets.length ? videoAssets.map((asset, index) => <div key={asset.id} className="media-card-shell"><button className="media-card" onClick={() => { const clip = clips.find((item) => item.sourceUrl === asset.url); if (clip) { setSelectedClip(clip.id); seek(clip.start) } }}><div className={`media-thumb ${asset.mediaType === 'image' ? 'image-thumb' : ''}`}>{asset.mediaType === 'image' ? <img src={asset.url} alt=""/> : <><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></>}<b>{index + 1}</b></div><div className="media-meta"><strong>{asset.name}</strong><span>{asset.mediaType === 'image' ? t('stillImage') : formatTime(asset.duration).slice(0, 5)} · {t('yourFile')}</span></div></button><button className="media-delete-button" onClick={() => deleteMediaAsset(asset)} title={t('deleteMedia')} aria-label={t('deleteMedia')}><Trash2 size={14}/></button></div>) : <button className="media-card" onClick={() => fileInput.current?.click()}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></div><div className="media-meta"><strong>{fileName}</strong><span>{formatTime(duration).slice(0, 5)} · {t('sample')}</span></div></button>}</div>
             <button className={`extract-audio-button ${isSelectedVideoDetached ? 'done' : ''}`} onClick={detachAudioFromVideo} disabled={!selectedVideoSource || activeClip?.mediaType === 'image' || isSelectedVideoDetached}><AudioLines size={17}/>{isSelectedVideoDetached ? t('detachedDone') : t('detachAudio')}</button>
             <div className="media-card empty"><FolderOpen size={22} /><span>{t('dropVideo')}</span></div>
           </>}
@@ -1711,8 +1800,9 @@ function App() {
         <section className="editor-stage"><div className="preview-wrap">
           <div className="canvas-toolbar"><span>{t('canvasRatio')}</span><div className="canvas-presets">{canvasPresets.map((preset) => <button key={preset.value} className={canvasPreset === preset.value ? 'active' : ''} onClick={() => applyCanvasPreset(preset.value)}>{preset.value}</button>)}<button className={canvasPreset === 'custom' ? 'active' : ''} onClick={() => setCanvasPreset('custom')}>{t('custom')}</button></div>{canvasPreset === 'custom' && <div className="custom-canvas-size"><input type="number" min="64" max="8192" value={canvasWidth} onChange={(event) => commitCanvasDimension('width', Number(event.target.value))} aria-label={t('canvasWidth')}/><span>×</span><input type="number" min="64" max="8192" value={canvasHeight} onChange={(event) => commitCanvasDimension('height', Number(event.target.value))} aria-label={t('canvasHeight')}/></div>}</div>
           <div className="preview-canvas" style={{aspectRatio: `${canvasWidth}/${canvasHeight}`, '--canvas-ratio': canvasWidth / canvasHeight} as CSSProperties}>
-            {currentTransition.active && previousVideoClip && <div className="preview-media-layer transition-outgoing" style={{filter: outgoingVideoFilter, clipPath: outgoingCrop, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x + previousVideoClip.positionX}%, ${currentTransition.previous.y + previousVideoClip.positionY}%) scale(${currentTransition.previous.scale * previousVideoClip.scale / 100})`}}>{previousVideoClip.sourceUrl ? previousVideoClip.mediaType === 'image' ? <img src={previousVideoClip.sourceUrl} alt=""/> : <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
-            <div className={`preview-media-layer ${selectedClip && previewMediaClip?.id === selectedClip ? 'selected-media' : ''}`} style={{filter: previewVideoFilter, clipPath: previewCrop, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x + (previewMediaClip?.positionX ?? 0)}%, ${videoMotion.y + (previewMediaClip?.positionY ?? 0)}%) scale(${videoMotion.scale * (previewMediaClip?.scale ?? 100) / 100})`}} onPointerDown={(event) => previewMediaClip && beginMediaPosition(event, previewMediaClip)} onPointerMove={moveMediaPosition} onPointerUp={endMediaPosition} onPointerCancel={endMediaPosition}>{previewVideoUrl ? previewMediaType === 'image' ? <img src={previewVideoUrl} alt={previewMediaClip?.label ?? ''}/> : <video ref={videoRef} src={previewVideoUrl} muted={isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
+            {currentTransition.active && previousVideoClip && <div className={`preview-media-layer transition-outgoing ${previousVideoClip.mediaFit === 'fit' ? 'fit-media' : ''}`} style={{filter: outgoingVideoFilter, clipPath: outgoingCrop, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x + previousVideoClip.positionX}%, ${currentTransition.previous.y + previousVideoClip.positionY}%) scale(${currentTransition.previous.scale * previousVideoClip.scale / 100})`}}>{previousVideoClip.sourceUrl ? previousVideoClip.mediaType === 'image' ? <img src={previousVideoClip.sourceUrl} alt=""/> : <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
+            <div className={`preview-media-layer ${previewMediaClip?.mediaFit === 'fit' ? 'fit-media' : ''} ${selectedClip && previewMediaClip?.id === selectedClip ? 'selected-media' : ''}`} style={{filter: previewVideoFilter, clipPath: previewCrop, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x + (previewMediaClip?.positionX ?? 0)}%, ${videoMotion.y + (previewMediaClip?.positionY ?? 0)}%) scale(${videoMotion.scale * (previewMediaClip?.scale ?? 100) / 100})`}} onPointerDown={(event) => previewMediaClip && beginMediaPosition(event, previewMediaClip)} onPointerMove={moveMediaPosition} onPointerUp={endMediaPosition} onPointerCancel={endMediaPosition}>{previewVideoUrl ? previewMediaType === 'image' ? <img src={previewVideoUrl} alt={previewMediaClip?.label ?? ''}/> : <video ref={videoRef} src={previewVideoUrl} muted={isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
+            {selectedClip && previewMediaClip?.id === selectedClip && <div className="media-transform-overlay" style={{transform: `translate(${videoMotion.x + previewMediaClip.positionX}%, ${videoMotion.y + previewMediaClip.positionY}%) scale(${videoMotion.scale * previewMediaClip.scale / 100})`}}><div className="media-selection-box" style={previewMediaSelectionStyle}><span className="media-scale-badge">{Math.round(previewMediaClip.scale)}%</span>{(['nw', 'ne', 'sw', 'se'] as const).map((corner) => <button key={corner} className={`media-scale-handle ${corner}`} aria-label={t('resizeMedia')} title={t('resizeMedia')} onPointerDown={(event) => beginMediaScale(event, previewMediaClip)} onPointerMove={moveMediaScale} onPointerUp={endMediaScale} onPointerCancel={endMediaScale}/>)}</div></div>}
             {previewEffectClip && previewEffectClip.videoEffect !== 'none' && <div className={`video-effect-overlay effect-${previewEffectClip.videoEffect}`} style={{'--effect-intensity': previewEffectClip.effectIntensity / 100} as CSSProperties}/>}
             {textClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); const isTyping = item.animation === 'typewriter' && currentTime < item.start + Math.min(item.animationDuration, item.duration); return <div key={item.id} className={`video-text-layer ${selectedTextClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, fontSize: item.fontSize, fontFamily: item.fontFamily, color: item.color, opacity: item.opacity / 100 * motion.opacity, fontWeight: item.bold ? 700 : 400, transform: `translate(-50%, -50%) scale(${motion.scale})`, ...textEffectStyle(item)}} onPointerDown={(e) => beginTextPosition(e, item)} onPointerMove={moveTextPosition} onPointerUp={endTextPosition} onPointerCancel={endTextPosition}><span className={isTyping ? 'typewriter-active' : ''}>{animatedText(item.text, item.animation, item.start, item.duration, item.animationDuration, currentTime)}</span>{selectedTextClip === item.id && <><i className="text-handle nw"/><i className="text-handle ne"/><i className="text-handle sw"/><i className="text-handle se"/></>}</div>})}
             {stickerClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); return <button key={item.id} className={`video-sticker-layer ${selectedStickerClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, width: `${item.size}%`, opacity: item.opacity / 100 * motion.opacity, transform: `translate(-50%, -50%) rotate(${item.rotation}deg) scale(${motion.scale})`}} onPointerDown={(event) => beginStickerPosition(event, item)} onPointerMove={moveStickerPosition} onPointerUp={endStickerPosition} onPointerCancel={endStickerPosition}><img src={item.src} alt={item.name} style={{clipPath: `inset(${item.cropTop}% ${item.cropRight}% ${item.cropBottom}% ${item.cropLeft}%)`}}/></button>})}
@@ -1761,7 +1851,7 @@ function App() {
             <div className="properties-tabs video-tabs"><button className={videoInspectorTab === 'video' ? 'active' : ''} onClick={() => setVideoInspectorTab('video')}>{t('video')}</button><button className={videoInspectorTab === 'animation' ? 'active' : ''} onClick={() => setVideoInspectorTab('animation')}>{t('animation')}</button><button className={videoInspectorTab === 'transition' ? 'active' : ''} onClick={() => setVideoInspectorTab('transition')}>{t('transition')}</button><button className={videoInspectorTab === 'adjust' ? 'active' : ''} onClick={() => setVideoInspectorTab('adjust')}>{t('adjust')}</button></div>
             {videoInspectorTab === 'video' ? <>
             <div className="property-section"><h3><SlidersHorizontal size={16}/>{t('basic')}</h3><label>{t('opacity')} <span>{videoOpacity}%</span><input type="range" min="0" max="100" value={videoOpacity} onChange={(event) => setVideoOpacity(Number(event.target.value))}/></label><div className="toggle-row"><span>{t('stabilize')}</span><button className="toggle"><i/></button></div></div>
-            {activeClip && <><div className="property-section media-transform-editor"><h3><Crop size={16}/>{t('cropAndResize')}</h3><label>{t('scale')} <span>{Math.round(activeClip.scale)}%</span><input type="range" min="10" max="500" step="1" value={activeClip.scale} onChange={(event) => updateVideoClip({scale: Number(event.target.value)})}/></label><label>{t('horizontal')} <span>{Math.round(activeClip.positionX)}%</span><input type="range" min="-100" max="100" value={activeClip.positionX} onChange={(event) => updateVideoClip({positionX: Number(event.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeClip.positionY)}%</span><input type="range" min="-100" max="100" value={activeClip.positionY} onChange={(event) => updateVideoClip({positionY: Number(event.target.value)})}/></label><p className="crop-hint">{t('dragMediaHint')}</p></div><div className="property-section crop-editor"><h3><Crop size={16}/>{t('cropEdges')}</h3>{([['cropLeft', 'left'], ['cropRight', 'right'], ['cropTop', 'top'], ['cropBottom', 'bottom']] as const).map(([edge, label]) => <label key={edge}>{t(label)} <span>{activeClip[edge]}%</span><input type="range" min="0" max="45" value={activeClip[edge]} onChange={(event) => updateMediaCrop(edge, Number(event.target.value))}/></label>)}<button className="inline-reset" onClick={resetMediaTransform}>{t('resetTransform')}</button></div></>}
+            {activeClip && <><div className="property-section media-transform-editor"><h3><Crop size={16}/>{t('cropAndResize')}</h3><div className="media-fit-buttons"><button className={activeClip.mediaFit === 'fit' ? 'active' : ''} onClick={() => setMediaFit('fit')}>{t('fitToCanvas')}</button><button className={activeClip.mediaFit === 'fill' ? 'active' : ''} onClick={() => setMediaFit('fill')}>{t('fillCanvas')}</button></div><label>{t('scale')} <span className="media-scale-value"><input type="number" min="1" max="1000" step="1" value={Math.round(activeClip.scale)} onChange={(event) => updateVideoClip({scale: clampMediaScale(Number(event.target.value))})}/>%</span><input type="range" min="1" max="1000" step="1" value={activeClip.scale} onChange={(event) => updateVideoClip({scale: clampMediaScale(Number(event.target.value))})}/></label><label>{t('horizontal')} <span>{Math.round(activeClip.positionX)}%</span><input type="range" min="-100" max="100" value={activeClip.positionX} onChange={(event) => updateVideoClip({positionX: Number(event.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeClip.positionY)}%</span><input type="range" min="-100" max="100" value={activeClip.positionY} onChange={(event) => updateVideoClip({positionY: Number(event.target.value)})}/></label><p className="crop-hint">{t('dragMediaHint')}</p></div><div className="property-section crop-editor"><h3><Crop size={16}/>{t('cropEdges')}</h3>{([['cropLeft', 'left'], ['cropRight', 'right'], ['cropTop', 'top'], ['cropBottom', 'bottom']] as const).map(([edge, label]) => <label key={edge}>{t(label)} <span>{activeClip[edge]}%</span><input type="range" min="0" max="45" value={activeClip[edge]} onChange={(event) => updateMediaCrop(edge, Number(event.target.value))}/></label>)}<button className="inline-reset" onClick={resetMediaTransform}>{t('resetTransform')}</button></div></>}
             <div className="property-section"><h3><Gauge size={16}/>{t('speed')} <span>{speed.toFixed(1)}x</span></h3><input type="range" min="0.5" max="2" step="0.1" value={speed} onChange={(e) => setSpeed(Number(e.target.value))}/><div className="range-labels"><span>0.5x</span><span>1x</span><span>2x</span></div></div>
             <div className="property-section"><h3><Volume2 size={16}/>{t('volume')} <span>{volume}%</span></h3><input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(Number(e.target.value))}/></div>
             </> : videoInspectorTab === 'animation' ? activeClip ? renderAnimationEditor(activeClip, updateVideoClip, activeClip.start, activeClip.duration) : <div className="caption-empty inspector-empty">{t('selectClipForAnimation')}</div> : videoInspectorTab === 'transition' ? activeClip ? renderTransitionEditor(activeClip) : <div className="caption-empty inspector-empty">{t('selectClipForTransition')}</div> : <>
@@ -1773,7 +1863,7 @@ function App() {
       </section>
 
       <section className="timeline-panel">
-        <div className="timeline-toolbar"><div><button className="tool-active"><MousePointer2 size={16}/></button><button onClick={splitClip} title={t('splitClip')}><Scissors size={16}/></button><button onClick={deleteClip} title={t('deleteItem')}><Trash2 size={16}/></button><span className="divider"/><button onClick={() => addText()} title={t('addText')}><TextCursorInput size={16}/></button><button onClick={() => setActiveTool('stickers')} title={t('openStickers')}><Sticker size={16}/></button><button onClick={() => { const target = activeClip ?? currentVideoClip; if (target) { setSelectedClip(target.id); setSelectedAudioClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0); setVideoInspectorTab('video') } else setToast(t('selectMediaForCrop')) }} title={t('cropAndResize')}><Crop size={16}/></button><span className="divider"/><div className="optional-track-buttons">{optionalTrackItems.map(({type, labelKey, icon: Icon}) => <button key={type} onClick={() => addTimelineTrack(type)} title={t('addTrack', {track: t(labelKey)})} aria-label={t('addTrack', {track: t(labelKey)})}><Icon size={15}/><Plus className="track-plus" size={9}/></button>)}</div></div><div className="timeline-zoom"><button onClick={() => applyTimelineZoom(zoom / 1.25)} title={t('zoomOut')}><ZoomOut size={15}/></button><div className="timeline-zoom-scrubber" title={t('zoomHelp')} onPointerDown={beginZoomDrag} onPointerMove={moveZoomDrag} onPointerUp={endZoomDrag} onPointerCancel={endZoomDrag}><span/><i/></div><label><input className="zoom-percent-input" type="number" min="0.01" step="1" value={zoomPercentInput} onChange={(event) => {const value = event.target.value; setZoomPercentInput(value); const parsed = Number(value); if (value && Number.isFinite(parsed) && parsed > 0) setZoom(Math.min(10000, Math.max(.0001, parsed / 100)))}} onBlur={commitZoomPercent} onKeyDown={(event) => {if (event.key === 'Enter') event.currentTarget.blur()}} aria-label={t('zoomPercent')}/><span>%</span></label><button onClick={() => applyTimelineZoom(zoom * 1.25)} title={t('zoomIn')}><ZoomIn size={15}/></button></div></div>
+        <div className="timeline-toolbar"><div><button className="tool-active"><MousePointer2 size={16}/></button><button onClick={splitClip} title={t('splitClip')}><Scissors size={16}/></button><button onClick={deleteClip} title={t('deleteItem')}><Trash2 size={16}/></button><span className="divider"/><button onClick={() => addText()} title={t('addText')}><TextCursorInput size={16}/></button><button onClick={() => setActiveTool('stickers')} title={t('openStickers')}><Sticker size={16}/></button><button onClick={() => { const target = activeClip ?? currentVideoClip; if (target) { setSelectedClip(target.id); setSelectedAudioClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0); setVideoInspectorTab('video') } else setToast(t('selectMediaForCrop')) }} title={t('cropAndResize')}><Crop size={16}/></button><button className={`snap-toggle ${snappingEnabled ? 'active' : ''}`} onClick={() => { setSnappingEnabled((enabled) => { setToast(t(enabled ? 'snappingDisabled' : 'snappingEnabled')); return !enabled }) }} title={t(snappingEnabled ? 'snappingOnHint' : 'snappingOffHint')} aria-pressed={snappingEnabled}><Magnet size={15}/><span>{t('snap')}</span></button><span className="divider"/><div className="optional-track-buttons">{optionalTrackItems.map(({type, labelKey, icon: Icon}) => <button key={type} onClick={() => addTimelineTrack(type)} title={t('addTrack', {track: t(labelKey)})} aria-label={t('addTrack', {track: t(labelKey)})}><Icon size={15}/><Plus className="track-plus" size={9}/></button>)}</div></div><div className="timeline-zoom"><button onClick={() => applyTimelineZoom(zoom / 1.25)} title={t('zoomOut')}><ZoomOut size={15}/></button><div className="timeline-zoom-scrubber" title={t('zoomHelp')} onPointerDown={beginZoomDrag} onPointerMove={moveZoomDrag} onPointerUp={endZoomDrag} onPointerCancel={endZoomDrag}><span/><i/></div><label><input className="zoom-percent-input" type="number" min="0.01" step="1" value={zoomPercentInput} onChange={(event) => {const value = event.target.value; setZoomPercentInput(value); const parsed = Number(value); if (value && Number.isFinite(parsed) && parsed > 0) setZoom(Math.min(10000, Math.max(.0001, parsed / 100)))}} onBlur={commitZoomPercent} onKeyDown={(event) => {if (event.key === 'Enter') event.currentTarget.blur()}} aria-label={t('zoomPercent')}/><span>%</span></label><button onClick={() => applyTimelineZoom(zoom * 1.25)} title={t('zoomIn')}><ZoomIn size={15}/></button></div></div>
         <div className="timeline-body"><div className="track-heads" ref={trackHeadsRef} onScroll={() => syncTimelineScroll('heads')}><div className="ruler-spacer"/>{tracks.map((track) => { const Icon = track.type === 'video' ? Film : track.type === 'text' ? TextCursorInput : track.type === 'sticker' ? Sticker : track.type === 'caption' ? Captions : Music2; const canDelete = track.type === 'text' || track.type === 'sticker' || track.type === 'caption' || tracks.filter((item) => item.type === track.type).length > 1; const label = trackDisplayLabel(track); return <div key={track.id} className="track-head-row"><Icon size={15}/><span>{label}</span><div className="track-actions"><button onClick={() => addTimelineTrack(track.type)} title={t('addTrack', {track: label})}><Plus size={13}/></button><button disabled={!canDelete} onClick={() => deleteTimelineTrack(track)} title={t('deleteTrack', {track: label})}><Trash2 size={12}/></button></div></div>})}</div>
           <div className="timeline-scroll" ref={timelineScrollRef} onScroll={() => syncTimelineScroll('timeline')}><div className="timeline-content" style={{ width: timelineWidth, height: 25 + tracks.length * 64 }} onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); seek((e.clientX - rect.left) / pxPerSecond) }}>
             <div className="ruler">{Array.from({length: rulerTickCount}, (_, i) => {const time = i * rulerStep; return <span key={i} style={{left: time * pxPerSecond}}>{rulerStep < .1 ? `${time.toFixed(3)}s` : rulerStep < 1 ? `${time.toFixed(1)}s` : formatTime(time).slice(0,5)}</span>})}</div><div className="playhead" style={{left: currentTime * pxPerSecond}}><i/><b/></div>

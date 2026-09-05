@@ -4,201 +4,206 @@
   <img src="public/lumacut-icon.png" width="112" alt="LumaCut icon">
 </p>
 
-LumaCut คือโปรแกรมตัดต่อวิดีโอบนคอมพิวเตอร์แบบโอเพนซอร์ส หน้าตาและขั้นตอนใช้งานออกแบบให้เข้าใจง่ายในแนวเดียวกับโปรแกรมตัดต่อสมัยใหม่ เช่น CapCut สร้างด้วย Electron, React และ TypeScript ใช้งาน แก้ไข และแจกจ่ายต่อได้ฟรีภายใต้สัญญาอนุญาต MIT
+LumaCut is a free, open-source desktop video editor with a straightforward workflow inspired by modern editing applications such as CapCut. It is built with Electron, React, and TypeScript and is distributed under the MIT License.
 
-เวอร์ชันปัจจุบัน: **1.25.0**
+Current version: **1.28.0**
 
-## จุดเด่น
+## Features
 
-- นำเข้าวิดีโอและรูปภาพหลายไฟล์พร้อมกันด้วยปุ่มหรือการลากแล้ววาง โดยระบบวางคลิปเรียงต่อกันใน Timeline อัตโนมัติ
-- เลือกอัตราส่วนผืนงานสำเร็จรูป `1:1`, `16:9`, `9:16`, `4:3`, `3:4` หรือกำหนดความกว้างและความสูงเองได้ถึง 8192 พิกเซล
-- ครอปขอบ ย่อ/ขยาย และเลื่อนตำแหน่งวิดีโอ รูปภาพ และ GIF/สติกเกอร์ได้ พร้อมลากสื่อโดยตรงบนหน้าพรีวิว
-- เปลี่ยนชื่อ บันทึก และเปิดโปรเจกต์ `.lumacut` กลับมาแก้ไขต่อได้ พร้อมคืนค่า Timeline และการตั้งค่าทั้งหมด
-- แยกเสียงจากวิดีโอเป็นคลิปอิสระ เพื่อเลื่อน แบ่ง ตัด และลบแยกจากภาพ
-- ปรับระดับเสียงแยกรายคลิปได้ตั้งแต่ 0–200% พร้อม Fade In และ Fade Out ที่แสดงเส้นซองเสียงบน Timeline
-- ลากย้ายคลิปและลากขอบซ้ายหรือขวาเพื่อปรับจุดเริ่มต้นและความยาว
-- เพิ่มหรือลบแทร็กวิดีโอ เสียง ข้อความ สติกเกอร์ และคำบรรยาย
-- เพิ่ม แก้ไข จัดตำแหน่ง แบ่ง และลบข้อความ พร้อมฟอนต์ 11 รูปแบบ
-- Text Template สำเร็จรูป 8 แบบ เช่น Clean, Neon, Cinematic, Pop, Breaking News และ Retro
-- Text Effect 6 แบบ ได้แก่ None, Outline, Shadow, Glow, Neon และ Background พร้อมปรับสี ความหนา ระยะห่างตัวอักษร และความทึบพื้นหลัง
-- เพิ่มสติกเกอร์ OpenMoji ฟรีและ GIF เคลื่อนไหว พร้อมนำเข้าไฟล์ `.gif` จากคอม ค้นหา กรองหมวด ปรับขนาด การหมุน ความทึบ และเวลาแสดงผล
-- สร้างคำบรรยายเองหรือนำเข้าไฟล์ SRT
-- บันทึกเสียงจากไมโครโฟนลง Timeline
-- Video Effect 6 แบบ ได้แก่ Film, Light Leak, Blur, Grain, VHS และ Soft พร้อมปรับความเข้มแยกรายคลิป
-- Animation สำหรับวิดีโอ ข้อความ และสติกเกอร์ เช่น Fade, Zoom และ Slide พร้อม Typewriter ที่แสดงข้อความทีละตัวอักษร
-- Transition ระหว่างคลิปแบบ Crossfade, Fade ผ่านสีดำ, Slide และ Zoom blend
-- ปรับความเร็ว ระดับเสียง ความทึบ ความสว่าง คอนทราสต์ และความอิ่มสี
-- ซูม Timeline ด้วยการลาก ปุ่มแว่นขยาย หรือพิมพ์เปอร์เซ็นต์
-- รองรับ English, ไทย, Русский, 中文, 日本語, Español, हिन्दी และ Français
-- ส่งออกวิดีโอพร้อมเลือก VP9/VP8 ความละเอียด Source–4K เฟรมเรต 24–60 fps และตำแหน่งบันทึก พร้อมเปอร์เซ็นต์และเวลาเสร็จโดยประมาณ
+- Import multiple videos and images at once using the file picker or drag and drop. Imported files are automatically placed one after another on the timeline.
+- Delete imported media from the library, with confirmation and automatic removal of timeline clips and detached audio that use that source.
+- Choose a canvas preset: `1:1`, `16:9`, `9:16`, `4:3`, or `3:4`, or enter a custom width and height up to 8192 pixels.
+- Crop, reposition, and resize videos, images, GIFs, and stickers. Drag media directly in the preview and use four corner handles to resize it from 1–1000%.
+- Use **Fit to canvas** to show the entire image or video, or **Fill canvas** to cover the whole canvas.
+- Rename, save, and reopen `.lumacut` project files with timeline content and editor settings restored.
+- Detach audio from a video and edit, move, split, trim, or delete it independently.
+- Adjust each audio clip from 0–200% volume and apply Fade In and Fade Out with a visible timeline envelope.
+- Move clips and drag either edge to change the start point or duration.
+- Enable Timeline Snapping to attach clips to edges and prevent overlap, or disable it to overlap clips and drag them through one another.
+- Add or remove video, audio, text, sticker, and caption tracks.
+- Add, edit, position, split, and delete text using 11 included font choices.
+- Apply eight text templates, including Clean, Neon, Cinematic, Pop, Breaking News, and Retro.
+- Apply six text effects: None, Outline, Shadow, Glow, Neon, and Background, with controls for color, thickness, letter spacing, and background opacity.
+- Use free OpenMoji stickers and animated GIFs. Import local `.gif` files, search and filter assets, then adjust size, rotation, opacity, and display time.
+- Create captions manually or import an SRT file.
+- Record microphone audio directly onto the timeline.
+- Apply six per-clip video effects: Film, Light Leak, Blur, Grain, VHS, and Soft, with adjustable intensity.
+- Animate videos, text, and stickers with Fade, Zoom, and Slide presets. The Typewriter animation reveals text one character at a time.
+- Add Crossfade, Fade Through Black, Slide, and Zoom Blend transitions between adjacent clips.
+- Adjust playback speed, volume, opacity, brightness, contrast, and saturation.
+- Zoom the timeline by dragging the zoom control, clicking the magnifier buttons, or entering an exact percentage.
+- Use the interface in English, Thai, Russian, Chinese, Japanese, Spanish, Hindi, or French.
+- Export video using VP9 or VP8, from source resolution up to 4K, at 24–60 fps, to a chosen location with progress percentage and estimated time remaining.
 
-## ความต้องการของระบบ
+## System Requirements
 
 ### Windows
 
-- Windows 10 หรือ Windows 11 แบบ 64 บิต
-- RAM ขั้นต่ำ 4 GB; แนะนำ 8 GB ขึ้นไปสำหรับวิดีโอความละเอียดสูง
-- พื้นที่ว่างอย่างน้อย 1 GB สำหรับตัวโปรแกรม และพื้นที่เพิ่มเติมสำหรับไฟล์วิดีโอ
+- 64-bit Windows 10 or Windows 11
+- 4 GB RAM minimum; 8 GB or more is recommended for high-resolution video
+- At least 1 GB of free space for the application, plus additional space for media and exported files
 
 ### Linux
 
-- ระบบ Linux แบบ 64 บิตที่รองรับ AppImage
-- อาจต้องติดตั้ง FUSE ตามรูปแบบของ Linux distribution ที่ใช้งาน
-- RAM ขั้นต่ำ 4 GB; แนะนำ 8 GB ขึ้นไป
+- A 64-bit Linux distribution that supports AppImage
+- FUSE may be required, depending on the distribution
+- 4 GB RAM minimum; 8 GB or more is recommended
 
-LumaCut ไม่จำเป็นต้องสมัครบัญชี และการตัดต่อทำงานภายในเครื่องของผู้ใช้
+LumaCut does not require an account. Editing and project processing take place locally on your computer.
 
-## ดาวน์โหลด
+## Download
 
-เปิดหน้า **Releases** ของ repository นี้ เลือกรุ่นล่าสุด แล้วดาวน์โหลดไฟล์ตามระบบปฏิบัติการ:
+Open the repository's [Releases page](https://github.com/natblockman/LumaCut/releases), select the latest release, and download the file for your operating system:
 
-- Windows: `LumaCut-Setup-1.25.0.exe`
-- Linux: `LumaCut-1.25.0.AppImage`
+- Windows: `LumaCut-Setup-1.28.0.exe`
+- Linux: `LumaCut-1.28.0.AppImage`
 
-ไฟล์ติดตั้งไม่ได้เก็บไว้ใน source code เนื่องจากมีขนาดใหญ่ แต่จะเผยแพร่เป็นไฟล์แนบใน GitHub Releases
+Installers are not stored in the source tree because of their size. They are published as assets attached to GitHub Releases.
 
-## วิธีติดตั้งบน Windows
+## Install on Windows
 
-1. ดาวน์โหลด `LumaCut-Setup-1.25.0.exe` จากหน้า Releases
-2. ดับเบิลคลิกไฟล์ที่ดาวน์โหลด
-3. หาก Windows SmartScreen แจ้งเตือน ให้ตรวจสอบว่าไฟล์ดาวน์โหลดจาก repository นี้ จากนั้นเลือก **More info** และ **Run anyway**
-4. เลือกโฟลเดอร์ที่ต้องการติดตั้ง
-5. กด **Install** และรอจนติดตั้งเสร็จ
-6. เปิด LumaCut จาก Desktop shortcut หรือ Start Menu
+1. Download `LumaCut-Setup-1.28.0.exe` from the Releases page.
+2. Double-click the downloaded file.
+3. If Windows SmartScreen displays a warning, confirm that the file came from this repository, then select **More info** and **Run anyway**.
+4. Choose an installation folder.
+5. Select **Install** and wait for installation to finish.
+6. Open LumaCut from the desktop shortcut or Start menu.
 
-ตัวติดตั้งโอเพนซอร์สรุ่นนี้ยังไม่มีใบรับรอง Code Signing เชิงพาณิชย์ จึงอาจมีคำเตือน SmartScreen แม้ไฟล์จะสร้างจาก source code ใน repository นี้
+This open-source installer does not currently have a commercial code-signing certificate. Windows may therefore show a SmartScreen warning even when the installer was built directly from this repository's source code.
 
-### ถอนการติดตั้งบน Windows
+### Uninstall on Windows
 
-ไปที่ **Settings → Apps → Installed apps → LumaCut → Uninstall** หรือใช้ Uninstall shortcut ใน Start Menu
+Open **Settings → Apps → Installed apps → LumaCut → Uninstall**, or use the uninstall shortcut in the Start menu.
 
-## วิธีใช้งานบน Linux
+## Run on Linux
 
-1. ดาวน์โหลด `LumaCut-1.25.0.AppImage` จากหน้า Releases
-2. เปิด Terminal ในโฟลเดอร์ที่เก็บไฟล์
-3. เพิ่มสิทธิ์ให้ไฟล์สามารถทำงานได้:
-
-```bash
-chmod +x LumaCut-1.25.0.AppImage
-```
-
-4. เปิดโปรแกรม:
+1. Download `LumaCut-1.28.0.AppImage` from the Releases page.
+2. Open a terminal in the folder containing the file.
+3. Make the file executable:
 
 ```bash
-./LumaCut-1.25.0.AppImage
+chmod +x LumaCut-1.28.0.AppImage
 ```
 
-หาก AppImage เปิดไม่ได้เพราะระบบไม่มี FUSE สามารถทดลองรันแบบแตกไฟล์ชั่วคราว:
+4. Start the application:
 
 ```bash
-./LumaCut-1.25.0.AppImage --appimage-extract-and-run
+./LumaCut-1.28.0.AppImage
 ```
 
-## เริ่มตัดต่อครั้งแรก
+If the AppImage cannot start because FUSE is unavailable, try running it in temporary extraction mode:
 
-1. กด **Import media / นำเข้าสื่อ** แล้วเลือกวิดีโอหรือรูปภาพหนึ่งไฟล์หรือหลายไฟล์พร้อมกัน สื่อแต่ละไฟล์จะถูกเพิ่มเป็นคลิปและเรียงต่อกันใน Timeline
-2. คลิกคลิปบน Timeline เพื่อเลือกคลิปที่ต้องการแก้ไข
-3. ลากคลิปเพื่อย้ายเวลา หรือลากขอบซ้ายและขวาเพื่อตัดช่วงต้นและปรับความยาว
-4. วางหัวอ่านไว้กลางคลิปแล้วกดปุ่มกรรไกร หรือกด `Ctrl+B` เพื่อแบ่งคลิป
-5. เลือกอัตราส่วนผืนงานเหนือหน้าพรีวิว หรือกด **Custom / กำหนดเอง** เพื่อระบุความกว้างและความสูง
-6. เลือกคลิป แล้วเปิดแท็บ **Video → Crop and resize** เพื่อปรับ Scale ตำแหน่ง และขอบที่ต้องการครอป หรือกดปุ่ม Crop บนแถบเครื่องมือ Timeline
-5. ใช้เมนูด้านซ้ายเพื่อเพิ่มเสียง ข้อความ สติกเกอร์ หรือคำบรรยาย
-6. ใช้แผงด้านขวาเพื่อปรับ Video, Animation, Transition และ Adjust
-7. กดปุ่ม **Export / ส่งออก** มุมขวาบน ตั้งค่าการเข้ารหัส ความละเอียด เฟรมเรต และตำแหน่งบันทึก จากนั้นกด **Start export / เริ่มส่งออก**
+```bash
+./LumaCut-1.28.0.AppImage --appimage-extract-and-run
+```
 
-## การตั้งค่า Export และติดตามความคืบหน้า
+## Your First Edit
 
-1. เลือก **VP9** เมื่อต้องการคุณภาพและประสิทธิภาพการบีบอัดที่ดีกว่า หรือเลือก **VP8** เพื่อเข้ารหัสได้เร็วขึ้น
-2. เลือกความละเอียดเท่ากับต้นฉบับ หรือ 480p, 720p, 1080p, 1440p และ 2160p (4K)
-3. เลือกเฟรมเรต 24, 25, 30, 50 หรือ 60 fps
-4. กด **Browse / เลือก** เพื่อกำหนดชื่อและตำแหน่งไฟล์ผ่านหน้าต่างบันทึกไฟล์ของระบบ
-5. ระหว่างเข้ารหัส โปรแกรมจะแสดงแถบความคืบหน้า เปอร์เซ็นต์ และเวลาที่เหลือโดยประมาณ
-6. เมื่อเสร็จ โปรแกรมจะแสดงตำแหน่งไฟล์ที่บันทึกไว้
+1. Select **Import media** and choose one or more videos or images. Each file is added as a clip and placed sequentially on the timeline.
+2. Select a timeline clip to edit it.
+3. Drag the clip to change its time, or drag its left and right edges to trim the beginning and adjust its duration.
+4. Place the playhead inside a clip and select the scissors button, or press `Ctrl+B`, to split it.
+5. Select a canvas ratio above the preview, or choose **Custom** to enter a width and height.
+6. Select a clip and drag any of the four corner handles in the preview to resize it. You can also open **Video → Crop and resize** to enter a Scale value from 1–1000%, adjust its position, or crop individual edges.
+7. Select **Fit to canvas** to keep the entire source visible, or **Fill canvas** to cover all canvas space.
+8. Use the **Snap** magnet button on the timeline to switch behavior. When enabled, clips attach to edges and cannot overlap. When disabled, clips may overlap and pass through one another.
+9. Use the left panel to add audio, text, stickers, or captions. Use the trash button on a media card to remove a source from the project.
+10. Use the right panel to edit Video, Animation, Transition, and Adjust settings.
+11. Select **Export** in the upper-right corner, configure encoding, resolution, frame rate, and save location, then select **Start export**.
 
-## การตั้งชื่อ บันทึก และเปิดโปรเจกต์
+## Export Settings and Progress
 
-1. คลิกช่องชื่อโปรเจกต์ตรงกลางแถบด้านบน แล้วพิมพ์ชื่อใหม่ได้ทันที
-2. กดไอคอนรูปดิสก์หรือ `Ctrl+S` เลือกตำแหน่งบันทึก โปรแกรมจะสร้างไฟล์ `.lumacut`
-3. การกด Save ครั้งต่อไปจะบันทึกทับไฟล์โปรเจกต์เดิมโดยไม่ต้องเลือกตำแหน่งใหม่
-4. กดไอคอนรูปโฟลเดอร์หรือ `Ctrl+O` เพื่อเปิดไฟล์ `.lumacut` แล้วแก้ไขต่อ
-5. ไฟล์โปรเจกต์บันทึกแทร็ก คลิป ตำแหน่ง การตัด เอฟเฟกต์ ข้อความ สติกเกอร์ คำบรรยาย เสียง และค่า Export
+1. Choose **VP9** for better quality and compression efficiency, or **VP8** for faster encoding.
+2. Choose the source resolution or 480p, 720p, 1080p, 1440p, or 2160p (4K).
+3. Choose 24, 25, 30, 50, or 60 fps.
+4. Select **Browse** to choose the filename and location using the operating system's save dialog.
+5. During encoding, LumaCut displays a progress bar, completion percentage, and estimated time remaining.
+6. When export finishes, the application shows the saved file location.
 
-วิดีโอ เสียง และ GIF ที่นำเข้าจากเครื่องจะอ้างอิงตำแหน่งไฟล์ต้นฉบับ จึงควรเก็บไฟล์ต้นฉบับไว้ที่เดิม ส่วนสื่อชั่วคราว เช่น เสียงที่บันทึกในโปรแกรม จะถูกฝังในไฟล์โปรเจกต์อัตโนมัติ
+## Rename, Save, and Open Projects
 
-## การปรับระดับเสียงและ Fade
+1. Select the project name in the middle of the top bar and enter a new name.
+2. Select the disk icon or press `Ctrl+S`, choose a location, and LumaCut will create a `.lumacut` project file.
+3. Later saves update the same project file without asking for a new location.
+4. Select the folder icon or press `Ctrl+O` to reopen a `.lumacut` file and continue editing.
+5. Project files store tracks, clips, timing, trims, effects, text, stickers, captions, audio, and export settings.
 
-1. เลือกคลิปเสียงบน Timeline ไม่ว่าจะเป็นเสียงที่นำเข้า เสียงบันทึก หรือเสียงที่แยกจากวิดีโอ
-2. ในแผงด้านขวา เลื่อน **Clip volume / ความดังของคลิป** เพื่อปรับระดับ 0–200% โดย 100% คือระดับเดิม
-3. เลื่อน **Fade in / เฟดเข้า** เพื่อให้เสียงค่อย ๆ ดังขึ้นจากต้นคลิป
-4. เลื่อน **Fade out / เฟดออก** เพื่อให้เสียงค่อย ๆ เบาลงก่อนจบคลิป
-5. พื้นที่สีเขียวบนคลิปเสียงจะแสดงรูปทรง Fade และผลลัพธ์จะทำงานทั้งตอนพรีวิวและตอนส่งออก
+Videos, audio files, and GIFs imported from your computer refer to their original file locations. Keep those source files in place. Temporary media created inside LumaCut, such as recorded microphone audio, is embedded in the project file automatically.
 
-## การใช้ Text Template และ Text Effect
+## Audio Volume and Fades
 
-1. เปิดเมนู **Text / ข้อความ** ด้านซ้าย
-2. คลิกเทมเพลตที่ต้องการ โปรแกรมจะสร้างข้อความพร้อมฟอนต์ สี ตำแหน่ง และเอฟเฟกต์ที่ตั้งไว้ให้ทันที
-3. เลือกคลิปข้อความบน Timeline แล้วแก้เนื้อหา สี และตัวหนาในแท็บ **Text** ด้านขวา
-4. ใช้แท็บ **Style** เพื่อเปลี่ยนฟอนต์ ขนาด ความทึบ ตำแหน่ง และเวลาแสดงผล
-5. ใช้แท็บ **Effects** เพื่อเลือก None, Outline, Shadow, Glow, Neon หรือ Background
-6. ปรับสีเอฟเฟกต์ สีและความหนาเส้นขอบ ระยะห่างตัวอักษร หรือความทึบพื้นหลังตามชนิดเอฟเฟกต์
-7. เอฟเฟกต์จะแสดงทั้งในหน้าพรีวิวและวิดีโอ WebM ที่ส่งออก
+1. Select an audio clip on the timeline. This may be imported audio, recorded audio, or audio detached from a video.
+2. In the right panel, adjust **Clip volume** from 0–200%. A value of 100% preserves the original volume.
+3. Increase **Fade in** to make the audio gradually rise from silence at the beginning.
+4. Increase **Fade out** to make the audio gradually fall to silence at the end.
+5. The green envelope on the audio clip visualizes the fade shape. Fades are applied in both preview and export.
 
-## การใช้ Video Effect
+## Text Templates and Text Effects
 
-1. เลือกคลิปวิดีโอที่ต้องการบน Timeline
-2. เปิดเมนู **Effects / เอฟเฟกต์** ด้านซ้าย
-3. เลือก Film, Light Leak, Blur, Grain, VHS หรือ Soft หรือเลือก **None / ไม่มี** เพื่อล้างเอฟเฟกต์
-4. เลื่อน **Effect intensity / ความเข้มเอฟเฟกต์** เพื่อปรับผลลัพธ์ตั้งแต่ 0–100%
-5. แต่ละคลิปตั้งค่าเอฟเฟกต์แยกกันได้ และผลลัพธ์จะแสดงทั้งในพรีวิวและวิดีโอ WebM ที่ส่งออก
+1. Open **Text** in the left panel.
+2. Select a template to create text with its preset font, color, position, and effect.
+3. Select the text clip on the timeline, then edit its content, color, and weight in the **Text** tab on the right.
+4. Use the **Style** tab to change the font, size, opacity, position, and display time.
+5. Use the **Effects** tab to select None, Outline, Shadow, Glow, Neon, or Background.
+6. Adjust effect color, outline color and thickness, letter spacing, or background opacity when available.
+7. Text effects appear in both the preview and exported WebM video.
 
-## การใช้ GIF
+## Video Effects
 
-1. เปิดเมนู **Stickers / สติกเกอร์** ด้านซ้าย
-2. เลือกแท็บ **GIF** เพื่อแสดงเฉพาะภาพเคลื่อนไหว หรือค้นหาจากชื่อและคำสำคัญ
-3. กด **Import GIF / นำเข้า GIF** แล้วเลือกไฟล์ `.gif` จากคอม ไฟล์จะถูกเพิ่มลงคลังและ Timeline ทันที
-4. หรือคลิก GIF ที่มีอยู่ในคลังเพื่อเพิ่มลงในแทร็กสติกเกอร์ ณ ตำแหน่งหัวอ่าน
-5. ลาก GIF บนหน้าพรีวิวเพื่อย้ายตำแหน่ง และใช้แผงด้านขวาเพื่อปรับขนาด การหมุน ความทึบ เวลาแสดงผล และ Animation
-6. GIF จะเคลื่อนไหวทั้งในพรีวิวและวิดีโอที่ส่งออก
+1. Select a video clip on the timeline.
+2. Open **Effects** in the left panel.
+3. Select Film, Light Leak, Blur, Grain, VHS, or Soft. Select **None** to remove the effect.
+4. Adjust **Effect intensity** from 0–100%.
+5. Effects are stored independently for each clip and appear in both preview and exported WebM video.
 
-## การใช้ Transition
+## GIFs
 
-Transition เป็นเอฟเฟกต์ที่เล่นตอนเริ่มต้นของคลิปที่เลือก:
+1. Open **Stickers** in the left panel.
+2. Select the **GIF** tab to show animated assets only, or search by name and keyword.
+3. Select **Import GIF** and choose a local `.gif` file. It is added to the library and timeline immediately.
+4. Alternatively, select an existing GIF in the library to place it on the sticker track at the playhead.
+5. Drag the GIF in the preview to reposition it. Use the right panel to adjust its size, rotation, opacity, display time, and animation.
+6. GIFs animate in both preview and export.
 
-1. เตรียมคลิปวิดีโออย่างน้อยสองคลิป และวางให้ปลายคลิปแรกติดกับต้นคลิปที่สอง
-2. เลือกคลิปที่สองบน Timeline
-3. เปิดแท็บ **Transition / ทรานซิชัน** ในแผงด้านขวา
-4. เลือก Crossfade, Fade ผ่านสีดำ, Slide ซ้าย, Slide ขึ้น หรือ Zoom blend
-5. เลื่อนตัวปรับ **Transition duration** เพื่อกำหนดระยะเวลา
-6. กดเล่นหรือเลื่อนหัวอ่านผ่านรอยต่อเพื่อดูตัวอย่าง
+## Transitions
 
-เมื่อเปิดใช้ Transition จะมีสัญลักษณ์รูปเพชรแสดงตรงรอยต่อบน Timeline หากแยกคลิปออกจากกันจนเกิดช่องว่าง Transition จะไม่ทำงานจนกว่าจะนำคลิปกลับมาวางติดกัน
+A transition plays at the beginning of the selected clip:
 
-## ปุ่มลัด
+1. Add at least two video clips and place the end of the first directly against the beginning of the second.
+2. Select the second clip on the timeline.
+3. Open the **Transition** tab in the right panel.
+4. Select Crossfade, Fade Through Black, Slide Left, Slide Up, or Zoom Blend.
+5. Adjust **Transition duration**.
+6. Play the timeline or move the playhead across the cut to preview the transition.
 
-| ปุ่ม | การทำงาน |
+An active transition displays a diamond at the cut on the timeline. If the clips are separated by a gap, the transition remains inactive until they are adjacent again.
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
 | --- | --- |
-| `Space` | เล่นหรือหยุดพรีวิว |
-| `Ctrl+B` | แบ่งรายการที่เลือกตรงตำแหน่งหัวอ่าน |
-| `Ctrl+S` | บันทึกโปรเจกต์ |
-| `Ctrl+O` | เปิดโปรเจกต์ |
-| `Delete` หรือ `Backspace` | ลบรายการที่เลือก |
+| `Space` | Play or pause the preview |
+| `Ctrl+B` | Split the selected item at the playhead |
+| `Ctrl+S` | Save the project |
+| `Ctrl+O` | Open a project |
+| `Delete` or `Backspace` | Delete the selected item |
 
-## รูปแบบไฟล์และการส่งออก
+## File Formats and Export
 
-- รูปแบบวิดีโอและเสียงที่นำเข้าได้ขึ้นอยู่กับ codec ที่ Electron/Chromium บนระบบรองรับ
-- คำบรรยายรองรับการนำเข้าไฟล์ `.srt`
-- วิดีโอส่งออกเป็น `.webm` โดยเลือกเข้ารหัส VP9 หรือ VP8 ได้
-- เวลาส่งออกขึ้นอยู่กับความยาว ความละเอียดของวิดีโอ และประสิทธิภาพของเครื่อง
+- Supported video and audio import formats depend on the codecs available to Electron/Chromium on the operating system.
+- Captions can be imported from `.srt` files.
+- Video is exported as `.webm` using VP9 or VP8 encoding.
+- Export time depends on project duration, output resolution, and computer performance.
 
-## ข้อจำกัดของเวอร์ชันปัจจุบัน
+## Current Limitations
 
-- ยังส่งออก MP4 โดยตรงไม่ได้
-- ตัวติดตั้ง Windows ยังไม่ได้ลงลายเซ็นด้วยใบรับรอง Code Signing
-- การตัดต่อวิดีโอขนาดใหญ่หรือความละเอียดสูงอาจใช้ RAM มาก
+- Direct MP4 export is not yet available.
+- The Windows installer is not signed with a commercial code-signing certificate.
+- Large or high-resolution projects may consume substantial RAM.
 
-## สำหรับนักพัฒนา
+## Development
 
-ต้องมี Git, Node.js 20 ขึ้นไป และ pnpm จากนั้นรัน:
+Install Git, Node.js 20 or newer, and pnpm, then run:
 
 ```bash
 git clone https://github.com/natblockman/LumaCut.git
@@ -207,45 +212,45 @@ pnpm install
 pnpm desktop
 ```
 
-ตรวจโค้ดและสร้างเว็บ bundle:
+Lint the source and create a production web bundle:
 
 ```bash
 pnpm lint
 pnpm build
 ```
 
-สร้าง AppImage สำหรับ Linux:
+Build the Linux AppImage:
 
 ```bash
 pnpm package:linux
 ```
 
-สร้างตัวติดตั้ง Windows แบบ 64 บิต:
+Build the 64-bit Windows installer:
 
 ```bash
 pnpm package:windows
 ```
 
-ไฟล์ที่สร้างเสร็จจะอยู่ในโฟลเดอร์ `release/`
+Generated packages are written to the `release/` folder.
 
-## โครงสร้างโปรเจกต์
+## Project Structure
 
 ```text
-src/                 React UI และระบบตัดต่อ
-electron/            Electron main process และ preload
-public/              ไอคอนและสติกเกอร์ที่ใช้ในโปรแกรม
-build/               ไอคอนและสคริปต์สร้างตัวติดตั้ง
-release/             ไฟล์ติดตั้งที่สร้างในเครื่อง (ไม่เก็บใน Git)
+src/                 React UI and editing system
+electron/            Electron main process and preload
+public/              Application icons and bundled stickers
+build/               Installer icons and build scripts
+release/             Locally generated packages (excluded from Git)
 ```
 
-## การมีส่วนร่วม
+## Contributing
 
-Issue และ Pull Request สำหรับการแก้บั๊ก เพิ่ม codec/MP4 ระบบบันทึกโปรเจกต์ Undo/Redo และฟีเจอร์อื่น ๆ ยินดีต้อนรับ
+Issues and pull requests are welcome for bug fixes, codecs and MP4 support, project workflow improvements, Undo/Redo, and other features.
 
-## เครดิต
+## Credits
 
-สติกเกอร์ที่รวมมากับโปรแกรมออกแบบโดย [OpenMoji](https://openmoji.org/) และเผยแพร่ภายใต้สัญญาอนุญาต [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+Bundled stickers are designed by [OpenMoji](https://openmoji.org/) and distributed under the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) license.
 
 ## License
 
-[MIT](LICENSE) — ใช้งาน แก้ไข และแจกจ่ายได้ฟรี
+[MIT](LICENSE) — free to use, modify, and redistribute.
