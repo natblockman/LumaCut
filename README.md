@@ -6,14 +6,16 @@
 
 LumaCut is a free, open-source desktop video editor with a straightforward workflow inspired by modern editing applications such as CapCut. It is built with Electron, React, and TypeScript and is distributed under the MIT License.
 
-Current version: **1.28.0**
+Current version: **1.31.0**
 
 ## Features
 
 - Import multiple videos and images at once using the file picker or drag and drop. Imported files are automatically placed one after another on the timeline.
 - Delete imported media from the library, with confirmation and automatic removal of timeline clips and detached audio that use that source.
 - Choose a canvas preset: `1:1`, `16:9`, `9:16`, `4:3`, or `3:4`, or enter a custom width and height up to 8192 pixels.
-- Crop, reposition, and resize videos, images, GIFs, and stickers. Drag media directly in the preview and use four corner handles to resize it from 1–1000%.
+- Crop, reposition, and resize videos, images, GIFs, and stickers. Drag media directly in the preview, use four corner handles for proportional resizing, or use the side handles to stretch width and height independently from 1–1000%.
+- See a live measurement line and exact X/Y distance from the canvas center in both pixels and percentages while repositioning media.
+- Use the preview toolbar to mute monitoring audio, show center guides, hide transform controls, enable a checkerboard background, or zoom the viewer from 50–200% and Fit.
 - Use **Fit to canvas** to show the entire image or video, or **Fill canvas** to cover the whole canvas.
 - Rename, save, and reopen `.lumacut` project files with timeline content and editor settings restored.
 - Detach audio from a video and edit, move, split, trim, or delete it independently.
@@ -55,14 +57,14 @@ LumaCut does not require an account. Editing and project processing take place l
 
 Open the repository's [Releases page](https://github.com/natblockman/LumaCut/releases), select the latest release, and download the file for your operating system:
 
-- Windows: `LumaCut-Setup-1.28.0.exe`
-- Linux: `LumaCut-1.28.0.AppImage`
+- Windows: `LumaCut-Setup-1.31.0.exe`
+- Linux: `LumaCut-1.31.0.AppImage`
 
 Installers are not stored in the source tree because of their size. They are published as assets attached to GitHub Releases.
 
 ## Install on Windows
 
-1. Download `LumaCut-Setup-1.28.0.exe` from the Releases page.
+1. Download `LumaCut-Setup-1.31.0.exe` from the Releases page.
 2. Double-click the downloaded file.
 3. If Windows SmartScreen displays a warning, confirm that the file came from this repository, then select **More info** and **Run anyway**.
 4. Choose an installation folder.
@@ -77,24 +79,24 @@ Open **Settings → Apps → Installed apps → LumaCut → Uninstall**, or use 
 
 ## Run on Linux
 
-1. Download `LumaCut-1.28.0.AppImage` from the Releases page.
+1. Download `LumaCut-1.31.0.AppImage` from the Releases page.
 2. Open a terminal in the folder containing the file.
 3. Make the file executable:
 
 ```bash
-chmod +x LumaCut-1.28.0.AppImage
+chmod +x LumaCut-1.31.0.AppImage
 ```
 
 4. Start the application:
 
 ```bash
-./LumaCut-1.28.0.AppImage
+./LumaCut-1.31.0.AppImage
 ```
 
 If the AppImage cannot start because FUSE is unavailable, try running it in temporary extraction mode:
 
 ```bash
-./LumaCut-1.28.0.AppImage --appimage-extract-and-run
+./LumaCut-1.31.0.AppImage --appimage-extract-and-run
 ```
 
 ## Your First Edit
@@ -104,7 +106,7 @@ If the AppImage cannot start because FUSE is unavailable, try running it in temp
 3. Drag the clip to change its time, or drag its left and right edges to trim the beginning and adjust its duration.
 4. Place the playhead inside a clip and select the scissors button, or press `Ctrl+B`, to split it.
 5. Select a canvas ratio above the preview, or choose **Custom** to enter a width and height.
-6. Select a clip and drag any of the four corner handles in the preview to resize it. You can also open **Video → Crop and resize** to enter a Scale value from 1–1000%, adjust its position, or crop individual edges.
+6. Select a clip and drag a corner handle in the preview for proportional resizing. Drag the middle left/right handles to change only its width, or the middle top/bottom handles to change only its height. While moving media, the preview displays its signed X/Y distance from the canvas center in pixels and percentages. You can also enter Scale, Width, and Height values from 1–1000% under **Video → Crop and resize**.
 7. Select **Fit to canvas** to keep the entire source visible, or **Fill canvas** to cover all canvas space.
 8. Use the **Snap** magnet button on the timeline to switch behavior. When enabled, clips attach to edges and cannot overlap. When disabled, clips may overlap and pass through one another.
 9. Use the left panel to add audio, text, stickers, or captions. Use the trash button on a media card to remove a source from the project.

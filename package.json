@@ -1,7 +1,7 @@
 {
   "name": "lumacut",
   "private": true,
-  "version": "1.28.0",
+  "version": "1.31.0",
   "description": "โปรแกรมตัดต่อวิดีโอเดสก์ท็อปภาษาไทย",
   "author": "LumaCut",
   "type": "module",

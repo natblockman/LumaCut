@@ -782,9 +782,24 @@
 .media-scale-handle.ne { right: -7px; top: -7px; cursor: nesw-resize; }
 .media-scale-handle.sw { left: -7px; bottom: -7px; cursor: nesw-resize; }
 .media-scale-handle.se { right: -7px; bottom: -7px; cursor: nwse-resize; }
+.media-axis-handle { position: absolute; width: 17px; height: 9px; padding: 0; border: 2px solid #10201e; border-radius: 5px; background: #75ead7; box-shadow: 0 1px 5px #000b; pointer-events: auto; touch-action: none; }
+.media-axis-handle.w { left: -9px; top: 50%; translate: 0 -50%; rotate: 90deg; cursor: ew-resize; }
+.media-axis-handle.e { right: -9px; top: 50%; translate: 0 -50%; rotate: 90deg; cursor: ew-resize; }
+.media-axis-handle.n { left: 50%; top: -5px; translate: -50% 0; cursor: ns-resize; }
+.media-axis-handle.s { left: 50%; bottom: -5px; translate: -50% 0; cursor: ns-resize; }
 .media-scale-badge { position: absolute; left: 50%; top: -25px; translate: -50% 0; min-width: 42px; padding: 3px 6px; border-radius: 4px; background: #0c1716e8; color: #75ead7; font-size: 9px; font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
 .media-scale-value { display: inline-flex; align-items: center; gap: 2px; }
 .media-scale-value input { width: 48px; height: 22px; padding: 0 4px; border: 1px solid #343943; border-radius: 4px; background: #101116; color: #d9dde5; font-size: 9px; text-align: right; font-variant-numeric: tabular-nums; }
+.media-position-measurement { position: absolute; z-index: 14; inset: 0; overflow: hidden; pointer-events: none; }
+.media-position-measurement svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.media-position-measurement line { stroke: #75ead7; stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px #000); }
+.media-position-measurement i { position: absolute; width: 9px; height: 9px; border: 2px solid #10201e; border-radius: 50%; background: #75ead7; translate: -50% -50%; box-shadow: 0 1px 4px #000b; }
+.media-position-measurement .canvas-center-point { left: 50%; top: 50%; background: #fff; }
+.media-position-measurement span { position: absolute; min-width: max-content; max-width: 92%; padding: 4px 7px; border: 1px solid #3e746b; border-radius: 5px; background: #0b1515ed; color: #d6fff8; font-size: 8px; font-variant-numeric: tabular-nums; line-height: 1.35; translate: -50% -140%; box-shadow: 0 3px 10px #0009; }
+.media-position-readout { margin-top: 12px; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; border: 1px solid #303a3a; border-radius: 6px; background: #111918; font-size: 9px; font-variant-numeric: tabular-nums; }
+.media-position-readout strong { grid-column: 1 / -1; color: #8faaa6; font-size: 8px; font-weight: 500; }
+.media-position-readout span { color: #75ead7; }
+.media-position-readout small { color: #818b8a; font-size: 8px; }
 
 .canvas-toolbar { width: 100%; min-height: 31px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 7px; color: #8f949f; font-size: 9px; }
 .canvas-presets { display: flex; gap: 3px; }
@@ -794,6 +809,30 @@
 .custom-canvas-size { display: flex; align-items: center; gap: 3px; }
 .custom-canvas-size input { width: 57px; height: 24px; padding: 0 5px; border: 1px solid #353944; border-radius: 5px; background: #101116; color: #e8ebf0; font-size: 9px; text-align: center; }
 .preview-canvas { width: min(100%, calc((100vh - 405px) * var(--canvas-ratio, 1.7778))); }
+.editor-stage { overflow: auto; }
+.preview-canvas.checkerboard { background-color: #20232a; background-image: linear-gradient(45deg, #30343c 25%, transparent 25%), linear-gradient(-45deg, #30343c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #30343c 75%), linear-gradient(-45deg, transparent 75%, #30343c 75%); background-position: 0 0, 0 8px, 8px -8px, -8px 0; background-size: 16px 16px; }
+.preview-canvas.show-center-guides::before,
+.preview-canvas.show-center-guides::after { content: ''; position: absolute; z-index: 13; pointer-events: none; opacity: .7; }
+.preview-canvas.show-center-guides::before { left: 50%; top: 0; bottom: 0; border-left: 1px dashed #75ead7; }
+.preview-canvas.show-center-guides::after { left: 0; right: 0; top: 50%; border-top: 1px dashed #75ead7; }
+.preview-controls { overflow: visible; }
+.preview-right { position: relative; }
+.preview-right > button.preview-control-active,
+.preview-menu-anchor > button.preview-control-active { color: #75ead7; background: #1d302d; }
+.preview-menu-anchor { position: relative; }
+.preview-popover { position: absolute; z-index: 60; right: 0; bottom: 36px; min-width: 190px; padding: 7px; border: 1px solid #3a3e48; border-radius: 8px; background: #1b1d23; box-shadow: 0 12px 34px #000c; color: #dce0e7; }
+.preview-popover > strong { display: block; padding: 5px 7px 8px; color: #8e949f; font-size: 9px; font-weight: 600; }
+.preview-settings-popover { min-width: 216px; }
+.preview-right .preview-setting-row { width: 100%; height: 34px; padding: 0 7px; display: flex; align-items: center; justify-content: space-between; border-radius: 5px; color: #c3c8d0; font-size: 9px; text-align: left; }
+.preview-right .preview-setting-row:hover { background: #272a32; }
+.preview-setting-row > i { width: 28px; height: 16px; padding: 2px; border-radius: 10px; background: #343741; transition: background .15s; }
+.preview-setting-row > i b { display: block; width: 12px; height: 12px; border-radius: 50%; background: #8b909a; transition: translate .15s, background .15s; }
+.preview-setting-row > i.active { background: #28584f; }
+.preview-setting-row > i.active b { translate: 12px 0; background: #75ead7; }
+.preview-zoom-popover { min-width: 132px; }
+.preview-right .preview-zoom-popover > button { width: 100%; height: 29px; padding: 0 7px; display: flex; align-items: center; justify-content: space-between; border-radius: 5px; color: #bcc1c9; font-size: 9px; }
+.preview-right .preview-zoom-popover > button:hover { background: #272a32; }
+.preview-right .preview-zoom-popover > button.active { color: #75ead7; background: #20312e; }
 .media-thumb.image-thumb { background: #111319; }
 .media-thumb.image-thumb > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .media-card-shell { position: relative; }

@@ -5,7 +5,7 @@ import {
   Film, FolderOpen, Gauge, Globe2, Menu, Mic2, MousePointer2,
   Magnet, Music2, Pause, Play, Plus, Redo2, RotateCcw, Save, Scissors, Settings2, Square,
   SlidersHorizontal, Sparkles, Sticker, TextCursorInput,
-  Trash2, Undo2, Upload, Volume2, WandSparkles, X, ZoomIn, ZoomOut,
+  Trash2, Undo2, Upload, Volume2, VolumeX, WandSparkles, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import './App.css'
 import './icon.css'
@@ -24,7 +24,7 @@ type VideoEffectPreset = 'none' | 'film' | 'lightLeak' | 'blur' | 'grain' | 'VHS
 type VideoEffectSettings = { videoEffect: VideoEffectPreset; effectIntensity: number }
 type TimelineTrack = { id: string; type: TrackType; label: string }
 type MediaKind = 'video' | 'image'
-type MediaTransform = { scale: number; positionX: number; positionY: number; cropLeft: number; cropRight: number; cropTop: number; cropBottom: number }
+type MediaTransform = { scale: number; scaleX: number; scaleY: number; positionX: number; positionY: number; cropLeft: number; cropRight: number; cropTop: number; cropBottom: number }
 type MediaFit = 'fit' | 'fill'
 type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; sourcePath?: string; embeddedSource?: string; color: string; mediaType: MediaKind; mediaFit: MediaFit; sourceWidth: number; sourceHeight: number } & MediaTransform & AnimationSettings & TransitionSettings & VideoEffectSettings
 type VideoAsset = { id: number; name: string; url: string; duration: number; sourcePath?: string; embeddedSource?: string; mediaType: MediaKind; width: number; height: number }
@@ -39,9 +39,9 @@ const initialTracks: TimelineTrack[] = [
 ]
 
 const initialClips: Clip[] = [
-  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
-  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
-  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, scaleX: 100, scaleY: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, scaleX: 100, scaleY: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', mediaType: 'video', mediaFit: 'fill', sourceWidth: 1920, sourceHeight: 1080, scale: 100, scaleX: 100, scaleY: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
 ]
 const initialAudioClips: AudioClip[] = []
 const initialTextClips: TextClip[] = []
@@ -262,6 +262,8 @@ const formatTime = (time: number) => {
   return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}:${String(frames).padStart(2, '0')}`
 }
 
+const formatSigned = (value: number, fractionDigits = 0) => `${value > 0 ? '+' : ''}${value.toFixed(fractionDigits)}`
+
 const parseSrtTimestamp = (value: string) => {
   const match = value.trim().match(/(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})/)
   if (!match) return 0
@@ -286,6 +288,7 @@ const optionalTrackItems = [
 type ExportCodec = 'vp9' | 'vp8'
 type ExportResolution = 'source' | '2160p' | '1440p' | '1080p' | '720p' | '480p'
 type CanvasPreset = '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | 'custom'
+type PreviewZoom = 'fit' | 50 | 75 | 100 | 125 | 150 | 200
 
 const canvasPresets: { value: Exclude<CanvasPreset, 'custom'>; width: number; height: number }[] = [
   { value: '1:1', width: 1080, height: 1080 },
@@ -295,9 +298,9 @@ const canvasPresets: { value: Exclude<CanvasPreset, 'custom'>; width: number; he
   { value: '3:4', width: 1080, height: 1440 },
 ]
 
-const defaultMediaTransform: MediaTransform = { scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0 }
+const defaultMediaTransform: MediaTransform = { scale: 100, scaleX: 100, scaleY: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0 }
 const clampMediaScale = (value: number) => Math.max(1, Math.min(1000, Number.isFinite(value) ? value : 100))
-const normalizeClip = (clip: Clip): Clip => ({ ...clip, mediaType: clip.mediaType ?? 'video', mediaFit: clip.mediaFit ?? 'fill', sourceWidth: clip.sourceWidth ?? 1920, sourceHeight: clip.sourceHeight ?? 1080, scale: clip.scale ?? 100, positionX: clip.positionX ?? 0, positionY: clip.positionY ?? 0, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
+const normalizeClip = (clip: Clip): Clip => ({ ...clip, mediaType: clip.mediaType ?? 'video', mediaFit: clip.mediaFit ?? 'fill', sourceWidth: clip.sourceWidth ?? 1920, sourceHeight: clip.sourceHeight ?? 1080, scale: clip.scale ?? 100, scaleX: clip.scaleX ?? 100, scaleY: clip.scaleY ?? 100, positionX: clip.positionX ?? 0, positionY: clip.positionY ?? 0, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
 const normalizeSticker = (clip: StickerClip): StickerClip => ({ ...clip, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
 
 const exportResolutionOptions: { value: ExportResolution; width: number; height: number; label: string }[] = [
@@ -379,6 +382,7 @@ function App() {
   const stickerPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
   const mediaPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
   const mediaScaleRef = useRef<{ id: number; centerX: number; centerY: number; distance: number; scale: number } | null>(null)
+  const mediaAxisScaleRef = useRef<{ id: number; axis: 'horizontal' | 'vertical'; center: number; distance: number; scale: number } | null>(null)
   const stickerImagesRef = useRef(new Map<string, HTMLImageElement>())
   const importedGifUrlsRef = useRef<string[]>([])
   const zoomDragRef = useRef<{ x: number; zoom: number } | null>(null)
@@ -440,6 +444,13 @@ function App() {
   const [canvasWidth, setCanvasWidth] = useState(1920)
   const [canvasHeight, setCanvasHeight] = useState(1080)
   const [snappingEnabled, setSnappingEnabled] = useState(true)
+  const [previewMuted, setPreviewMuted] = useState(false)
+  const [previewSettingsOpen, setPreviewSettingsOpen] = useState(false)
+  const [previewZoomMenuOpen, setPreviewZoomMenuOpen] = useState(false)
+  const [previewZoom, setPreviewZoom] = useState<PreviewZoom>('fit')
+  const [showCenterGuides, setShowCenterGuides] = useState(false)
+  const [showTransformControls, setShowTransformControls] = useState(true)
+  const [previewCheckerboard, setPreviewCheckerboard] = useState(false)
   const [exportPath, setExportPath] = useState('')
   const [exportProgress, setExportProgress] = useState(0)
   const [exportEtaSeconds, setExportEtaSeconds] = useState<number | null>(null)
@@ -473,6 +484,10 @@ function App() {
   const previewVideoUrl = currentVideoClip?.sourceUrl || activeClip?.sourceUrl || videoUrl
   const previewMediaClip = currentVideoClip ?? activeClip
   const previewMediaType = previewMediaClip?.mediaType ?? 'video'
+  const previewPositionXPercent = previewMediaClip?.positionX ?? 0
+  const previewPositionYPercent = previewMediaClip?.positionY ?? 0
+  const previewPositionXPixels = Math.round(canvasWidth * previewPositionXPercent / 100)
+  const previewPositionYPixels = Math.round(canvasHeight * previewPositionYPercent / 100)
   const previewCrop = previewMediaClip ? `inset(${previewMediaClip.cropTop}% ${previewMediaClip.cropRight}% ${previewMediaClip.cropBottom}% ${previewMediaClip.cropLeft}%)` : undefined
   const outgoingCrop = previousVideoClip ? `inset(${previousVideoClip.cropTop}% ${previousVideoClip.cropRight}% ${previousVideoClip.cropBottom}% ${previousVideoClip.cropLeft}%)` : undefined
   const previewMediaSelectionStyle: CSSProperties = (() => {
@@ -622,8 +637,8 @@ function App() {
     if (!video) return
     video.playbackRate = speed
     video.volume = volume / 100
-    video.muted = isCurrentVideoDetached
-  }, [speed, volume, previewVideoUrl, isCurrentVideoDetached])
+    video.muted = previewMuted || isCurrentVideoDetached
+  }, [speed, volume, previewVideoUrl, isCurrentVideoDetached, previewMuted])
 
   useEffect(() => {
     const outgoingVideo = transitionVideoRef.current
@@ -662,14 +677,14 @@ function App() {
     if (audio.getAttribute('src') !== clip.sourceUrl) { audio.src = clip.sourceUrl; audio.load() }
     const wanted = clip.offset + currentTime - clip.start
     if (Math.abs(audio.currentTime - wanted) > .25) audio.currentTime = wanted
-    const gain = audioClipGain(clip, currentTime)
+    const gain = previewMuted ? 0 : audioClipGain(clip, currentTime)
     if (audioGainNodeRef.current && audioContextRef.current) {
       audio.volume = 1
       audioGainNodeRef.current.gain.setTargetAtTime(gain, audioContextRef.current.currentTime, .015)
     } else audio.volume = Math.min(1, gain)
     if (isPlaying && audio.paused) void audio.play().catch(() => undefined)
     if (!isPlaying && !audio.paused) audio.pause()
-  }, [currentTime, isPlaying, audioUrl, audioClips])
+  }, [currentTime, isPlaying, audioUrl, audioClips, previewMuted])
 
   useEffect(() => {
     if (!isPlaying || !audioUrl || !audioGainNodeRef.current || !audioContextRef.current) return
@@ -679,14 +694,14 @@ function App() {
       const clip = audioClips.find((item) => currentTime >= item.start && currentTime < item.start + item.duration)
       if (audio && clip && audio.getAttribute('src') === clip.sourceUrl) {
         const timelineTime = clip.start + audio.currentTime - clip.offset
-        const gain = audioClipGain(clip, timelineTime)
+        const gain = previewMuted ? 0 : audioClipGain(clip, timelineTime)
         audioGainNodeRef.current?.gain.setValueAtTime(gain, audioContextRef.current!.currentTime)
       }
       frame = requestAnimationFrame(updateGain)
     }
     frame = requestAnimationFrame(updateGain)
     return () => cancelAnimationFrame(frame)
-  }, [isPlaying, currentTime, audioUrl, audioClips])
+  }, [isPlaying, currentTime, audioUrl, audioClips, previewMuted])
 
   useEffect(() => {
     if (!toast) return
@@ -1262,8 +1277,8 @@ function App() {
     event.preventDefault(); event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId)
     const canvas = event.currentTarget.closest('.preview-canvas')?.getBoundingClientRect()
     if (!canvas) return
-    const centerX = canvas.left + canvas.width / 2
-    const centerY = canvas.top + canvas.height / 2
+    const centerX = canvas.left + canvas.width * (.5 + clip.positionX / 100)
+    const centerY = canvas.top + canvas.height * (.5 + clip.positionY / 100)
     mediaScaleRef.current = { id: clip.id, centerX, centerY, distance: Math.max(1, Math.hypot(event.clientX - centerX, event.clientY - centerY)), scale: clip.scale }
   }
   const moveMediaScale = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -1277,6 +1292,28 @@ function App() {
   const endMediaScale = (event: ReactPointerEvent<HTMLButtonElement>) => {
     if (!mediaScaleRef.current) return
     event.preventDefault(); event.stopPropagation(); mediaScaleRef.current = null
+    setToast(t('mediaResized'))
+  }
+
+  const beginMediaAxisScale = (event: ReactPointerEvent<HTMLButtonElement>, clip: Clip, axis: 'horizontal' | 'vertical') => {
+    event.preventDefault(); event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId)
+    const canvas = event.currentTarget.closest('.preview-canvas')?.getBoundingClientRect()
+    if (!canvas) return
+    const center = axis === 'horizontal' ? canvas.left + canvas.width * (.5 + clip.positionX / 100) : canvas.top + canvas.height * (.5 + clip.positionY / 100)
+    const pointer = axis === 'horizontal' ? event.clientX : event.clientY
+    mediaAxisScaleRef.current = { id: clip.id, axis, center, distance: Math.max(1, Math.abs(pointer - center)), scale: axis === 'horizontal' ? clip.scaleX : clip.scaleY }
+  }
+  const moveMediaAxisScale = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = mediaAxisScaleRef.current
+    if (!drag) return
+    event.preventDefault(); event.stopPropagation()
+    const pointer = drag.axis === 'horizontal' ? event.clientX : event.clientY
+    const nextScale = clampMediaScale(drag.scale * Math.max(1, Math.abs(pointer - drag.center)) / drag.distance)
+    setClips((items) => items.map((item) => item.id === drag.id ? { ...item, [drag.axis === 'horizontal' ? 'scaleX' : 'scaleY']: nextScale } : item))
+  }
+  const endMediaAxisScale = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!mediaAxisScaleRef.current) return
+    event.preventDefault(); event.stopPropagation(); mediaAxisScaleRef.current = null
     setToast(t('mediaResized'))
   }
 
@@ -1516,7 +1553,7 @@ function App() {
         ctx.globalAlpha = frame.opacity * videoOpacity / 100
         ctx.translate(canvas.width * (.5 + (frame.x + (effectClip?.positionX ?? 0)) / 100), canvas.height * (.5 + (frame.y + (effectClip?.positionY ?? 0)) / 100))
         const clipScale = (effectClip?.scale ?? 100) / 100
-        ctx.scale(frame.scale * clipScale, frame.scale * clipScale)
+        ctx.scale(frame.scale * clipScale * (effectClip?.scaleX ?? 100) / 100, frame.scale * clipScale * (effectClip?.scaleY ?? 100) / 100)
         ctx.drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight)
         ctx.restore()
       }
@@ -1799,16 +1836,33 @@ function App() {
 
         <section className="editor-stage"><div className="preview-wrap">
           <div className="canvas-toolbar"><span>{t('canvasRatio')}</span><div className="canvas-presets">{canvasPresets.map((preset) => <button key={preset.value} className={canvasPreset === preset.value ? 'active' : ''} onClick={() => applyCanvasPreset(preset.value)}>{preset.value}</button>)}<button className={canvasPreset === 'custom' ? 'active' : ''} onClick={() => setCanvasPreset('custom')}>{t('custom')}</button></div>{canvasPreset === 'custom' && <div className="custom-canvas-size"><input type="number" min="64" max="8192" value={canvasWidth} onChange={(event) => commitCanvasDimension('width', Number(event.target.value))} aria-label={t('canvasWidth')}/><span>×</span><input type="number" min="64" max="8192" value={canvasHeight} onChange={(event) => commitCanvasDimension('height', Number(event.target.value))} aria-label={t('canvasHeight')}/></div>}</div>
-          <div className="preview-canvas" style={{aspectRatio: `${canvasWidth}/${canvasHeight}`, '--canvas-ratio': canvasWidth / canvasHeight} as CSSProperties}>
-            {currentTransition.active && previousVideoClip && <div className={`preview-media-layer transition-outgoing ${previousVideoClip.mediaFit === 'fit' ? 'fit-media' : ''}`} style={{filter: outgoingVideoFilter, clipPath: outgoingCrop, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x + previousVideoClip.positionX}%, ${currentTransition.previous.y + previousVideoClip.positionY}%) scale(${currentTransition.previous.scale * previousVideoClip.scale / 100})`}}>{previousVideoClip.sourceUrl ? previousVideoClip.mediaType === 'image' ? <img src={previousVideoClip.sourceUrl} alt=""/> : <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
-            <div className={`preview-media-layer ${previewMediaClip?.mediaFit === 'fit' ? 'fit-media' : ''} ${selectedClip && previewMediaClip?.id === selectedClip ? 'selected-media' : ''}`} style={{filter: previewVideoFilter, clipPath: previewCrop, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x + (previewMediaClip?.positionX ?? 0)}%, ${videoMotion.y + (previewMediaClip?.positionY ?? 0)}%) scale(${videoMotion.scale * (previewMediaClip?.scale ?? 100) / 100})`}} onPointerDown={(event) => previewMediaClip && beginMediaPosition(event, previewMediaClip)} onPointerMove={moveMediaPosition} onPointerUp={endMediaPosition} onPointerCancel={endMediaPosition}>{previewVideoUrl ? previewMediaType === 'image' ? <img src={previewVideoUrl} alt={previewMediaClip?.label ?? ''}/> : <video ref={videoRef} src={previewVideoUrl} muted={isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
-            {selectedClip && previewMediaClip?.id === selectedClip && <div className="media-transform-overlay" style={{transform: `translate(${videoMotion.x + previewMediaClip.positionX}%, ${videoMotion.y + previewMediaClip.positionY}%) scale(${videoMotion.scale * previewMediaClip.scale / 100})`}}><div className="media-selection-box" style={previewMediaSelectionStyle}><span className="media-scale-badge">{Math.round(previewMediaClip.scale)}%</span>{(['nw', 'ne', 'sw', 'se'] as const).map((corner) => <button key={corner} className={`media-scale-handle ${corner}`} aria-label={t('resizeMedia')} title={t('resizeMedia')} onPointerDown={(event) => beginMediaScale(event, previewMediaClip)} onPointerMove={moveMediaScale} onPointerUp={endMediaScale} onPointerCancel={endMediaScale}/>)}</div></div>}
+          <div className={`preview-canvas ${previewCheckerboard ? 'checkerboard' : ''} ${showCenterGuides ? 'show-center-guides' : ''}`} style={{aspectRatio: `${canvasWidth}/${canvasHeight}`, '--canvas-ratio': canvasWidth / canvasHeight, width: previewZoom === 'fit' ? undefined : `${previewZoom}%`, maxWidth: previewZoom === 'fit' ? undefined : 'none'} as CSSProperties}>
+            {currentTransition.active && previousVideoClip && <div className={`preview-media-layer transition-outgoing ${previousVideoClip.mediaFit === 'fit' ? 'fit-media' : ''}`} style={{filter: outgoingVideoFilter, clipPath: outgoingCrop, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x + previousVideoClip.positionX}%, ${currentTransition.previous.y + previousVideoClip.positionY}%) scale(${currentTransition.previous.scale * previousVideoClip.scale * previousVideoClip.scaleX / 10000}, ${currentTransition.previous.scale * previousVideoClip.scale * previousVideoClip.scaleY / 10000})`}}>{previousVideoClip.sourceUrl ? previousVideoClip.mediaType === 'image' ? <img src={previousVideoClip.sourceUrl} alt=""/> : <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
+            <div className={`preview-media-layer ${previewMediaClip?.mediaFit === 'fit' ? 'fit-media' : ''} ${selectedClip && previewMediaClip?.id === selectedClip ? 'selected-media' : ''}`} style={{filter: previewVideoFilter, clipPath: previewCrop, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x + (previewMediaClip?.positionX ?? 0)}%, ${videoMotion.y + (previewMediaClip?.positionY ?? 0)}%) scale(${videoMotion.scale * (previewMediaClip?.scale ?? 100) * (previewMediaClip?.scaleX ?? 100) / 10000}, ${videoMotion.scale * (previewMediaClip?.scale ?? 100) * (previewMediaClip?.scaleY ?? 100) / 10000})`}} onPointerDown={(event) => previewMediaClip && beginMediaPosition(event, previewMediaClip)} onPointerMove={moveMediaPosition} onPointerUp={endMediaPosition} onPointerCancel={endMediaPosition}>{previewVideoUrl ? previewMediaType === 'image' ? <img src={previewVideoUrl} alt={previewMediaClip?.label ?? ''}/> : <video ref={videoRef} src={previewVideoUrl} muted={previewMuted || isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
+            {showTransformControls && selectedClip && previewMediaClip?.id === selectedClip && <div className="media-transform-overlay" style={{transform: `translate(${videoMotion.x + previewMediaClip.positionX}%, ${videoMotion.y + previewMediaClip.positionY}%) scale(${videoMotion.scale * previewMediaClip.scale * previewMediaClip.scaleX / 10000}, ${videoMotion.scale * previewMediaClip.scale * previewMediaClip.scaleY / 10000})`}}><div className="media-selection-box" style={previewMediaSelectionStyle}><span className="media-scale-badge">{Math.round(previewMediaClip.scale)}% · ↔ {Math.round(previewMediaClip.scaleX)}% · ↕ {Math.round(previewMediaClip.scaleY)}%</span>{(['nw', 'ne', 'sw', 'se'] as const).map((corner) => <button key={corner} className={`media-scale-handle ${corner}`} aria-label={t('resizeMedia')} title={t('resizeMedia')} onPointerDown={(event) => beginMediaScale(event, previewMediaClip)} onPointerMove={moveMediaScale} onPointerUp={endMediaScale} onPointerCancel={endMediaScale}/>)}{(['w', 'e'] as const).map((side) => <button key={side} className={`media-axis-handle ${side}`} aria-label={t('resizeMediaWidth')} title={t('resizeMediaWidth')} onPointerDown={(event) => beginMediaAxisScale(event, previewMediaClip, 'horizontal')} onPointerMove={moveMediaAxisScale} onPointerUp={endMediaAxisScale} onPointerCancel={endMediaAxisScale}/>)}{(['n', 's'] as const).map((side) => <button key={side} className={`media-axis-handle ${side}`} aria-label={t('resizeMediaHeight')} title={t('resizeMediaHeight')} onPointerDown={(event) => beginMediaAxisScale(event, previewMediaClip, 'vertical')} onPointerMove={moveMediaAxisScale} onPointerUp={endMediaAxisScale} onPointerCancel={endMediaAxisScale}/>)}</div></div>}
+            {showTransformControls && selectedClip && previewMediaClip?.id === selectedClip && <div className="media-position-measurement" aria-live="polite"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="50" y1="50" x2={50 + previewPositionXPercent} y2={50 + previewPositionYPercent}/></svg><i className="canvas-center-point"/><i className="media-center-point" style={{left: `${50 + previewPositionXPercent}%`, top: `${50 + previewPositionYPercent}%`}}/><span style={{left: `${Math.max(13, Math.min(87, 50 + previewPositionXPercent))}%`, top: `${Math.max(10, Math.min(90, 50 + previewPositionYPercent))}%`}}>{t('centerOffset')} · X {formatSigned(previewPositionXPixels)} px ({formatSigned(previewPositionXPercent, 1)}%) · Y {formatSigned(previewPositionYPixels)} px ({formatSigned(previewPositionYPercent, 1)}%)</span></div>}
             {previewEffectClip && previewEffectClip.videoEffect !== 'none' && <div className={`video-effect-overlay effect-${previewEffectClip.videoEffect}`} style={{'--effect-intensity': previewEffectClip.effectIntensity / 100} as CSSProperties}/>}
             {textClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); const isTyping = item.animation === 'typewriter' && currentTime < item.start + Math.min(item.animationDuration, item.duration); return <div key={item.id} className={`video-text-layer ${selectedTextClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, fontSize: item.fontSize, fontFamily: item.fontFamily, color: item.color, opacity: item.opacity / 100 * motion.opacity, fontWeight: item.bold ? 700 : 400, transform: `translate(-50%, -50%) scale(${motion.scale})`, ...textEffectStyle(item)}} onPointerDown={(e) => beginTextPosition(e, item)} onPointerMove={moveTextPosition} onPointerUp={endTextPosition} onPointerCancel={endTextPosition}><span className={isTyping ? 'typewriter-active' : ''}>{animatedText(item.text, item.animation, item.start, item.duration, item.animationDuration, currentTime)}</span>{selectedTextClip === item.id && <><i className="text-handle nw"/><i className="text-handle ne"/><i className="text-handle sw"/><i className="text-handle se"/></>}</div>})}
             {stickerClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); return <button key={item.id} className={`video-sticker-layer ${selectedStickerClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, width: `${item.size}%`, opacity: item.opacity / 100 * motion.opacity, transform: `translate(-50%, -50%) rotate(${item.rotation}deg) scale(${motion.scale})`}} onPointerDown={(event) => beginStickerPosition(event, item)} onPointerMove={moveStickerPosition} onPointerUp={endStickerPosition} onPointerCancel={endStickerPosition}><img src={item.src} alt={item.name} style={{clipPath: `inset(${item.cropTop}% ${item.cropRight}% ${item.cropBottom}% ${item.cropLeft}%)`}}/></button>})}
             {captionClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => <button key={item.id} className={`video-caption-layer ${selectedCaptionClip === item.id ? 'selected' : ''}`} onClick={(event) => {event.stopPropagation();setSelectedCaptionClip(item.id);setSelectedStickerClip(0);setSelectedTextClip(0);setSelectedClip(0);setSelectedAudioClip(0);setActiveTool('captions')}}>{item.text}</button>)}
           </div>
-          <div className="preview-controls"><span className="timecode">{formatTime(currentTime)} <i>/</i> {formatTime(projectDuration)}</span><button onClick={() => seek(currentTime - 5)}><RotateCcw size={17}/></button><button className="play-button" onClick={() => void togglePlayback()}>{isPlaying ? <Pause size={18} fill="currentColor"/> : <Play size={18} fill="currentColor"/>}</button><button onClick={() => seek(Math.min(projectDuration, currentTime + 5))}><RotateCcw className="forward" size={17}/></button><div className="preview-right"><button><Volume2 size={17}/></button><button><Settings2 size={17}/></button><button className="fit-button">{t('fit')} <ChevronDown size={13}/></button></div></div>
+          <div className="preview-controls">
+            <span className="timecode">{formatTime(currentTime)} <i>/</i> {formatTime(projectDuration)}</span>
+            <button onClick={() => seek(currentTime - 5)}><RotateCcw size={17}/></button>
+            <button className="play-button" onClick={() => void togglePlayback()}>{isPlaying ? <Pause size={18} fill="currentColor"/> : <Play size={18} fill="currentColor"/>}</button>
+            <button onClick={() => seek(Math.min(projectDuration, currentTime + 5))}><RotateCcw className="forward" size={17}/></button>
+            <div className="preview-right">
+              <button className={previewMuted ? 'preview-control-active' : ''} onClick={() => setPreviewMuted((muted) => { setToast(t(muted ? 'previewUnmuted' : 'previewMuted')); return !muted })} title={t(previewMuted ? 'unmutePreview' : 'mutePreview')} aria-pressed={previewMuted}>{previewMuted ? <VolumeX size={17}/> : <Volume2 size={17}/>}</button>
+              <div className="preview-menu-anchor">
+                <button className={previewSettingsOpen ? 'preview-control-active' : ''} onClick={() => { setPreviewSettingsOpen((open) => !open); setPreviewZoomMenuOpen(false) }} title={t('previewSettings')} aria-expanded={previewSettingsOpen}><Settings2 size={17}/></button>
+                {previewSettingsOpen && <div className="preview-popover preview-settings-popover"><strong>{t('previewSettings')}</strong><button className="preview-setting-row" onClick={() => setShowCenterGuides((value) => !value)}><span>{t('showCenterGuides')}</span><i className={showCenterGuides ? 'active' : ''}><b/></i></button><button className="preview-setting-row" onClick={() => setShowTransformControls((value) => !value)}><span>{t('showTransformControls')}</span><i className={showTransformControls ? 'active' : ''}><b/></i></button><button className="preview-setting-row" onClick={() => setPreviewCheckerboard((value) => !value)}><span>{t('checkerboardBackground')}</span><i className={previewCheckerboard ? 'active' : ''}><b/></i></button></div>}
+              </div>
+              <div className="preview-menu-anchor">
+                <button className="fit-button" onClick={() => { setPreviewZoomMenuOpen((open) => !open); setPreviewSettingsOpen(false) }} aria-expanded={previewZoomMenuOpen} title={t('previewZoom')}>{previewZoom === 'fit' ? t('fit') : `${previewZoom}%`} <ChevronDown size={13}/></button>
+                {previewZoomMenuOpen && <div className="preview-popover preview-zoom-popover"><strong>{t('previewZoom')}</strong>{(['fit', 50, 75, 100, 125, 150, 200] as PreviewZoom[]).map((option) => <button key={option} className={previewZoom === option ? 'active' : ''} onClick={() => { setPreviewZoom(option); setPreviewZoomMenuOpen(false) }}>{option === 'fit' ? t('fitPreview') : `${option}%`}{previewZoom === option && <Check size={13}/>}</button>)}</div>}
+              </div>
+            </div>
+          </div>
         </div></section>
 
         <aside className="property-panel">
@@ -1851,7 +1905,7 @@ function App() {
             <div className="properties-tabs video-tabs"><button className={videoInspectorTab === 'video' ? 'active' : ''} onClick={() => setVideoInspectorTab('video')}>{t('video')}</button><button className={videoInspectorTab === 'animation' ? 'active' : ''} onClick={() => setVideoInspectorTab('animation')}>{t('animation')}</button><button className={videoInspectorTab === 'transition' ? 'active' : ''} onClick={() => setVideoInspectorTab('transition')}>{t('transition')}</button><button className={videoInspectorTab === 'adjust' ? 'active' : ''} onClick={() => setVideoInspectorTab('adjust')}>{t('adjust')}</button></div>
             {videoInspectorTab === 'video' ? <>
             <div className="property-section"><h3><SlidersHorizontal size={16}/>{t('basic')}</h3><label>{t('opacity')} <span>{videoOpacity}%</span><input type="range" min="0" max="100" value={videoOpacity} onChange={(event) => setVideoOpacity(Number(event.target.value))}/></label><div className="toggle-row"><span>{t('stabilize')}</span><button className="toggle"><i/></button></div></div>
-            {activeClip && <><div className="property-section media-transform-editor"><h3><Crop size={16}/>{t('cropAndResize')}</h3><div className="media-fit-buttons"><button className={activeClip.mediaFit === 'fit' ? 'active' : ''} onClick={() => setMediaFit('fit')}>{t('fitToCanvas')}</button><button className={activeClip.mediaFit === 'fill' ? 'active' : ''} onClick={() => setMediaFit('fill')}>{t('fillCanvas')}</button></div><label>{t('scale')} <span className="media-scale-value"><input type="number" min="1" max="1000" step="1" value={Math.round(activeClip.scale)} onChange={(event) => updateVideoClip({scale: clampMediaScale(Number(event.target.value))})}/>%</span><input type="range" min="1" max="1000" step="1" value={activeClip.scale} onChange={(event) => updateVideoClip({scale: clampMediaScale(Number(event.target.value))})}/></label><label>{t('horizontal')} <span>{Math.round(activeClip.positionX)}%</span><input type="range" min="-100" max="100" value={activeClip.positionX} onChange={(event) => updateVideoClip({positionX: Number(event.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeClip.positionY)}%</span><input type="range" min="-100" max="100" value={activeClip.positionY} onChange={(event) => updateVideoClip({positionY: Number(event.target.value)})}/></label><p className="crop-hint">{t('dragMediaHint')}</p></div><div className="property-section crop-editor"><h3><Crop size={16}/>{t('cropEdges')}</h3>{([['cropLeft', 'left'], ['cropRight', 'right'], ['cropTop', 'top'], ['cropBottom', 'bottom']] as const).map(([edge, label]) => <label key={edge}>{t(label)} <span>{activeClip[edge]}%</span><input type="range" min="0" max="45" value={activeClip[edge]} onChange={(event) => updateMediaCrop(edge, Number(event.target.value))}/></label>)}<button className="inline-reset" onClick={resetMediaTransform}>{t('resetTransform')}</button></div></>}
+            {activeClip && <><div className="property-section media-transform-editor"><h3><Crop size={16}/>{t('cropAndResize')}</h3><div className="media-fit-buttons"><button className={activeClip.mediaFit === 'fit' ? 'active' : ''} onClick={() => setMediaFit('fit')}>{t('fitToCanvas')}</button><button className={activeClip.mediaFit === 'fill' ? 'active' : ''} onClick={() => setMediaFit('fill')}>{t('fillCanvas')}</button></div><label>{t('scale')} <span className="media-scale-value"><input type="number" min="1" max="1000" step="1" value={Math.round(activeClip.scale)} onChange={(event) => updateVideoClip({scale: clampMediaScale(Number(event.target.value))})}/>%</span><input type="range" min="1" max="1000" step="1" value={activeClip.scale} onChange={(event) => updateVideoClip({scale: clampMediaScale(Number(event.target.value))})}/></label><label>{t('widthScale')} <span className="media-scale-value"><input type="number" min="1" max="1000" step="1" value={Math.round(activeClip.scaleX)} onChange={(event) => updateVideoClip({scaleX: clampMediaScale(Number(event.target.value))})}/>%</span><input type="range" min="1" max="1000" step="1" value={activeClip.scaleX} onChange={(event) => updateVideoClip({scaleX: clampMediaScale(Number(event.target.value))})}/></label><label>{t('heightScale')} <span className="media-scale-value"><input type="number" min="1" max="1000" step="1" value={Math.round(activeClip.scaleY)} onChange={(event) => updateVideoClip({scaleY: clampMediaScale(Number(event.target.value))})}/>%</span><input type="range" min="1" max="1000" step="1" value={activeClip.scaleY} onChange={(event) => updateVideoClip({scaleY: clampMediaScale(Number(event.target.value))})}/></label><label>{t('horizontal')} <span>{Math.round(activeClip.positionX)}%</span><input type="range" min="-100" max="100" value={activeClip.positionX} onChange={(event) => updateVideoClip({positionX: Number(event.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeClip.positionY)}%</span><input type="range" min="-100" max="100" value={activeClip.positionY} onChange={(event) => updateVideoClip({positionY: Number(event.target.value)})}/></label><div className="media-position-readout"><strong>{t('centerOffset')}</strong><span>X {formatSigned(Math.round(canvasWidth * activeClip.positionX / 100))} px <small>({formatSigned(activeClip.positionX, 1)}%)</small></span><span>Y {formatSigned(Math.round(canvasHeight * activeClip.positionY / 100))} px <small>({formatSigned(activeClip.positionY, 1)}%)</small></span></div><p className="crop-hint">{t('dragMediaHint')}</p></div><div className="property-section crop-editor"><h3><Crop size={16}/>{t('cropEdges')}</h3>{([['cropLeft', 'left'], ['cropRight', 'right'], ['cropTop', 'top'], ['cropBottom', 'bottom']] as const).map(([edge, label]) => <label key={edge}>{t(label)} <span>{activeClip[edge]}%</span><input type="range" min="0" max="45" value={activeClip[edge]} onChange={(event) => updateMediaCrop(edge, Number(event.target.value))}/></label>)}<button className="inline-reset" onClick={resetMediaTransform}>{t('resetTransform')}</button></div></>}
             <div className="property-section"><h3><Gauge size={16}/>{t('speed')} <span>{speed.toFixed(1)}x</span></h3><input type="range" min="0.5" max="2" step="0.1" value={speed} onChange={(e) => setSpeed(Number(e.target.value))}/><div className="range-labels"><span>0.5x</span><span>1x</span><span>2x</span></div></div>
             <div className="property-section"><h3><Volume2 size={16}/>{t('volume')} <span>{volume}%</span></h3><input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(Number(e.target.value))}/></div>
             </> : videoInspectorTab === 'animation' ? activeClip ? renderAnimationEditor(activeClip, updateVideoClip, activeClip.start, activeClip.duration) : <div className="caption-empty inspector-empty">{t('selectClipForAnimation')}</div> : videoInspectorTab === 'transition' ? activeClip ? renderTransitionEditor(activeClip) : <div className="caption-empty inspector-empty">{t('selectClipForTransition')}</div> : <>
