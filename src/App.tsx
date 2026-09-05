@@ -3,7 +3,7 @@ import type { ChangeEvent, CSSProperties, DragEvent, PointerEvent as ReactPointe
 import {
   AudioLines, Captions, Check, ChevronDown, CirclePlay, Crop, Download,
   Film, FolderOpen, Gauge, Globe2, Menu, Mic2, MousePointer2,
-  Music2, Pause, Play, Plus, Redo2, RotateCcw, Scissors, Settings2, Square,
+  Music2, Pause, Play, Plus, Redo2, RotateCcw, Save, Scissors, Settings2, Square,
   SlidersHorizontal, Sparkles, Sticker, TextCursorInput,
   Trash2, Undo2, Upload, Volume2, WandSparkles, X, ZoomIn, ZoomOut,
 } from 'lucide-react'
@@ -20,12 +20,16 @@ type TextEffectPreset = 'none' | 'outline' | 'shadow' | 'glow' | 'neon' | 'backg
 type TextEffectSettings = { textEffect: TextEffectPreset; strokeColor: string; strokeWidth: number; effectColor: string; backgroundColor: string; backgroundOpacity: number; letterSpacing: number }
 type TransitionPreset = 'none' | 'crossfade' | 'fade-black' | 'slide-left' | 'slide-up' | 'zoom'
 type TransitionSettings = { transition: TransitionPreset; transitionDuration: number }
+type VideoEffectPreset = 'none' | 'film' | 'lightLeak' | 'blur' | 'grain' | 'VHS' | 'soft'
+type VideoEffectSettings = { videoEffect: VideoEffectPreset; effectIntensity: number }
 type TimelineTrack = { id: string; type: TrackType; label: string }
-type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; color: string } & AnimationSettings & TransitionSettings
-type VideoAsset = { id: number; name: string; url: string; duration: number }
-type AudioClip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string }
+type MediaKind = 'video' | 'image'
+type MediaTransform = { scale: number; positionX: number; positionY: number; cropLeft: number; cropRight: number; cropTop: number; cropBottom: number }
+type Clip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; sourcePath?: string; embeddedSource?: string; color: string; mediaType: MediaKind; sourceWidth: number; sourceHeight: number } & MediaTransform & AnimationSettings & TransitionSettings & VideoEffectSettings
+type VideoAsset = { id: number; name: string; url: string; duration: number; sourcePath?: string; embeddedSource?: string; mediaType: MediaKind; width: number; height: number }
+type AudioClip = { id: number; trackId: string; label: string; start: number; duration: number; offset: number; sourceDuration: number; sourceUrl: string; sourcePath?: string; embeddedSource?: string; volume: number; fadeIn: number; fadeOut: number }
 type TextClip = { id: number; trackId: string; text: string; start: number; duration: number; x: number; y: number; fontSize: number; fontFamily: string; color: string; opacity: number; bold: boolean } & AnimationSettings & TextEffectSettings
-type StickerClip = { id: number; trackId: string; name: string; src: string; start: number; duration: number; x: number; y: number; size: number; rotation: number; opacity: number } & AnimationSettings
+type StickerClip = { id: number; trackId: string; name: string; src: string; sourcePath?: string; embeddedSource?: string; start: number; duration: number; x: number; y: number; size: number; rotation: number; opacity: number; cropLeft: number; cropRight: number; cropTop: number; cropBottom: number } & AnimationSettings
 type CaptionClip = { id: number; trackId: string; text: string; start: number; duration: number }
 
 const initialTracks: TimelineTrack[] = [
@@ -34,16 +38,16 @@ const initialTracks: TimelineTrack[] = [
 ]
 
 const initialClips: Clip[] = [
-  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
-  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
-  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 },
+  { id: 1, trackId: 'video-1', label: 'Intro', start: 0, duration: 4.6, offset: 0, sourceDuration: 15, sourceUrl: '', color: '#78dce8', mediaType: 'video', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 2, trackId: 'video-1', label: 'Main shot', start: 4.6, duration: 6.2, offset: 4.6, sourceDuration: 15, sourceUrl: '', color: '#a78bfa', mediaType: 'video', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
+  { id: 3, trackId: 'video-1', label: 'Outro', start: 10.8, duration: 4.2, offset: 10.8, sourceDuration: 15, sourceUrl: '', color: '#fb7185', mediaType: 'video', sourceWidth: 1920, sourceHeight: 1080, scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 },
 ]
 const initialAudioClips: AudioClip[] = []
 const initialTextClips: TextClip[] = []
 const initialStickerClips: StickerClip[] = []
 const initialCaptionClips: CaptionClip[] = []
 
-type StickerAsset = { name: string; keywords: string; src: string; kind: 'sticker' | 'gif' }
+type StickerAsset = { name: string; keywords: string; src: string; sourcePath?: string; embeddedSource?: string; kind: 'sticker' | 'gif' }
 const stickerAssets: StickerAsset[] = [
   { name: 'Heart eyes', keywords: 'รัก หัวใจ love', src: './stickers/1F60D.svg', kind: 'sticker' },
   { name: 'Tears of joy', keywords: 'ตลก หัวเราะ laugh', src: './stickers/1F602.svg', kind: 'sticker' },
@@ -121,6 +125,27 @@ const transitionOptions = [
   { value: 'zoom', labelKey: 'transitionZoom' },
 ] as const
 
+const videoEffectOptions = [
+  { value: 'none', labelKey: 'effectNone' },
+  { value: 'film', labelKey: 'film' },
+  { value: 'lightLeak', labelKey: 'lightLeak' },
+  { value: 'blur', labelKey: 'blur' },
+  { value: 'grain', labelKey: 'grain' },
+  { value: 'VHS', labelKey: 'vhs' },
+  { value: 'soft', labelKey: 'soft' },
+] as const
+
+const videoEffectFilter = (preset: VideoEffectPreset, intensity: number) => {
+  const amount = Math.max(0, Math.min(1, intensity / 100))
+  if (preset === 'film') return `sepia(${amount * .62}) contrast(${1 + amount * .18}) saturate(${1 - amount * .28}) brightness(${1 - amount * .04})`
+  if (preset === 'lightLeak') return `brightness(${1 + amount * .12}) saturate(${1 + amount * .28}) hue-rotate(${amount * -8}deg)`
+  if (preset === 'blur') return `blur(${amount * 7}px)`
+  if (preset === 'grain') return `contrast(${1 + amount * .14}) saturate(${1 - amount * .12})`
+  if (preset === 'VHS') return `contrast(${1 + amount * .2}) saturate(${1 + amount * .32}) hue-rotate(${amount * 7}deg)`
+  if (preset === 'soft') return `blur(${amount * 1.4}px) brightness(${1 + amount * .1}) saturate(${1 - amount * .18})`
+  return ''
+}
+
 const animationFrame = (preset: AnimationPreset, start: number, duration: number, animationDuration: number, time: number) => {
   const transition = Math.max(.1, Math.min(animationDuration, duration))
   const entering = Math.max(0, Math.min(1, (time - start) / transition))
@@ -193,6 +218,20 @@ const drawSpacedText = (ctx: CanvasRenderingContext2D, text: string, spacing: nu
   ctx.textAlign = 'center'
 }
 
+const audioClipGain = (clip: AudioClip, time: number) => {
+  const elapsed = Math.max(0, Math.min(clip.duration, time - clip.start))
+  const remaining = Math.max(0, clip.duration - elapsed)
+  const fadeInGain = clip.fadeIn > 0 ? Math.min(1, elapsed / Math.min(clip.fadeIn, clip.duration)) : 1
+  const fadeOutGain = clip.fadeOut > 0 ? Math.min(1, remaining / Math.min(clip.fadeOut, clip.duration)) : 1
+  return clip.volume / 100 * Math.min(fadeInGain, fadeOutGain)
+}
+
+const audioEnvelopePath = (clip: AudioClip) => {
+  const fadeIn = Math.min(100, clip.fadeIn / Math.max(.1, clip.duration) * 100)
+  const fadeOut = Math.min(100, clip.fadeOut / Math.max(.1, clip.duration) * 100)
+  return `polygon(0 100%, ${fadeIn}% 0, ${Math.max(fadeIn, 100 - fadeOut)}% 0, 100% 100%)`
+}
+
 type VisualFrame = { opacity: number; scale: number; x: number; y: number }
 const neutralFrame: VisualFrame = { opacity: 1, scale: 1, x: 0, y: 0 }
 const transitionFrame = (preset: TransitionPreset, start: number, transitionDuration: number, time: number) => {
@@ -243,6 +282,70 @@ const optionalTrackItems = [
   { type: 'caption', labelKey: 'trackCaption', icon: Captions },
 ] as const
 
+type ExportCodec = 'vp9' | 'vp8'
+type ExportResolution = 'source' | '2160p' | '1440p' | '1080p' | '720p' | '480p'
+type CanvasPreset = '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | 'custom'
+
+const canvasPresets: { value: Exclude<CanvasPreset, 'custom'>; width: number; height: number }[] = [
+  { value: '1:1', width: 1080, height: 1080 },
+  { value: '16:9', width: 1920, height: 1080 },
+  { value: '9:16', width: 1080, height: 1920 },
+  { value: '4:3', width: 1440, height: 1080 },
+  { value: '3:4', width: 1080, height: 1440 },
+]
+
+const defaultMediaTransform: MediaTransform = { scale: 100, positionX: 0, positionY: 0, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0 }
+const normalizeClip = (clip: Clip): Clip => ({ ...clip, mediaType: clip.mediaType ?? 'video', sourceWidth: clip.sourceWidth ?? 1920, sourceHeight: clip.sourceHeight ?? 1080, scale: clip.scale ?? 100, positionX: clip.positionX ?? 0, positionY: clip.positionY ?? 0, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
+const normalizeSticker = (clip: StickerClip): StickerClip => ({ ...clip, cropLeft: clip.cropLeft ?? 0, cropRight: clip.cropRight ?? 0, cropTop: clip.cropTop ?? 0, cropBottom: clip.cropBottom ?? 0 })
+
+const exportResolutionOptions: { value: ExportResolution; width: number; height: number; label: string }[] = [
+  { value: 'source', width: 0, height: 0, label: 'Source' },
+  { value: '2160p', width: 3840, height: 2160, label: '4K · 3840×2160' },
+  { value: '1440p', width: 2560, height: 1440, label: '2K · 2560×1440' },
+  { value: '1080p', width: 1920, height: 1080, label: 'Full HD · 1920×1080' },
+  { value: '720p', width: 1280, height: 720, label: 'HD · 1280×720' },
+  { value: '480p', width: 854, height: 480, label: 'SD · 854×480' },
+]
+
+const exportFrameRates = [24, 25, 30, 50, 60] as const
+
+type ProjectDocument = {
+  format: 'lumacut-project'
+  schemaVersion: 1
+  projectName: string
+  savedAt: string
+  tracks: TimelineTrack[]
+  videoAssets: VideoAsset[]
+  clips: Clip[]
+  audioClips: AudioClip[]
+  textClips: TextClip[]
+  stickerClips: StickerClip[]
+  captionClips: CaptionClip[]
+  importedGifAssets: StickerAsset[]
+  settings: {
+    duration: number
+    currentTime: number
+    selectedClip: number
+    selectedAudioClip: number
+    selectedTextClip: number
+    selectedStickerClip: number
+    selectedCaptionClip: number
+    zoom: number
+    speed: number
+    volume: number
+    videoOpacity: number
+    brightness: number
+    contrast: number
+    saturation: number
+    exportCodec: ExportCodec
+    exportResolution: ExportResolution
+    exportFrameRate: number
+    canvasPreset: CanvasPreset
+    canvasWidth: number
+    canvasHeight: number
+  }
+}
+
 const trackTypeOrder: Record<TrackType, number> = { video: 0, audio: 1, text: 2, sticker: 3, caption: 4 }
 const orderTimelineTracks = (items: TimelineTrack[]) => [...items].sort((a, b) => trackTypeOrder[a.type] - trackTypeOrder[b.type])
 
@@ -250,9 +353,14 @@ function App() {
   const fileInput = useRef<HTMLInputElement>(null)
   const audioInput = useRef<HTMLInputElement>(null)
   const captionInput = useRef<HTMLInputElement>(null)
+  const gifInput = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const transitionVideoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioSourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
+  const audioGainNodeRef = useRef<GainNode | null>(null)
+  const audioDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const trackHeadsRef = useRef<HTMLDivElement>(null)
   const timelineScrollRef = useRef<HTMLDivElement>(null)
@@ -266,13 +374,18 @@ function App() {
   const resizeRef = useRef<{ kind: TrackType; id: number; edge: 'start' | 'end'; x: number; start: number; duration: number; offset: number; maxDuration: number } | null>(null)
   const textPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
   const stickerPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
+  const mediaPositionRef = useRef<{ id: number; pointerX: number; pointerY: number; x: number; y: number } | null>(null)
   const stickerImagesRef = useRef(new Map<string, HTMLImageElement>())
+  const importedGifUrlsRef = useRef<string[]>([])
   const zoomDragRef = useRef<{ x: number; zoom: number } | null>(null)
   const [language, setLanguage] = useState<LanguageCode>(() => {
     const saved = localStorage.getItem('lumacut-language') as LanguageCode | null
     return languageOptions.some((option) => option.code === saved) ? saved! : 'en'
   })
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
+  const [projectName, setProjectName] = useState(() => translate(language, 'untitledProject'))
+  const [projectFilePath, setProjectFilePath] = useState('')
+  const [isSavingProject, setIsSavingProject] = useState(false)
   const [activeTool, setActiveTool] = useState<Tool>('media')
   const [tracks, setTracks] = useState(initialTracks)
   const [videoUrl, setVideoUrl] = useState('')
@@ -293,6 +406,7 @@ function App() {
   const [textClips, setTextClips] = useState(initialTextClips)
   const [selectedTextClip, setSelectedTextClip] = useState(0)
   const [stickerClips, setStickerClips] = useState(initialStickerClips)
+  const [importedGifAssets, setImportedGifAssets] = useState<StickerAsset[]>([])
   const [selectedStickerClip, setSelectedStickerClip] = useState(0)
   const [stickerSearch, setStickerSearch] = useState('')
   const [stickerCategory, setStickerCategory] = useState<'all' | 'sticker' | 'gif'>('all')
@@ -314,6 +428,18 @@ function App() {
   const [toast, setToast] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const [exportCodec, setExportCodec] = useState<ExportCodec>('vp9')
+  const [exportResolution, setExportResolution] = useState<ExportResolution>('1080p')
+  const [exportFrameRate, setExportFrameRate] = useState(30)
+  const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>('16:9')
+  const [canvasWidth, setCanvasWidth] = useState(1920)
+  const [canvasHeight, setCanvasHeight] = useState(1080)
+  const [exportPath, setExportPath] = useState('')
+  const [exportProgress, setExportProgress] = useState(0)
+  const [exportEtaSeconds, setExportEtaSeconds] = useState<number | null>(null)
+  const [exportFinished, setExportFinished] = useState(false)
+  const exportProgressTimeRef = useRef(0)
 
   const activeClip = clips.find((clip) => clip.id === selectedClip)
   const activeAudioClip = audioClips.find((clip) => clip.id === selectedAudioClip)
@@ -335,7 +461,15 @@ function App() {
   const hasAdjacentPreviousClip = Boolean(currentVideoClip && previousVideoClip && Math.abs(previousVideoClip.start + previousVideoClip.duration - currentVideoClip.start) < .11)
   const currentTransition = currentVideoClip && hasAdjacentPreviousClip ? transitionFrame(currentVideoClip.transition, currentVideoClip.start, Math.min(currentVideoClip.transitionDuration, currentVideoClip.duration, previousVideoClip!.duration), currentTime) : transitionFrame('none', 0, 1, 0)
   const videoMotion = currentVideoClip ? combineFrames(animationFrame(currentVideoClip.animation, currentVideoClip.start, currentVideoClip.duration, currentVideoClip.animationDuration, currentTime), currentTransition.current) : neutralFrame
+  const previewEffectClip = currentVideoClip ?? activeClip
+  const effectTarget = activeClip ?? currentVideoClip
+  const previewVideoFilter = `${filter} ${videoEffectFilter(previewEffectClip?.videoEffect ?? 'none', previewEffectClip?.effectIntensity ?? 0)}`
+  const outgoingVideoFilter = `${filter} ${videoEffectFilter(previousVideoClip?.videoEffect ?? 'none', previousVideoClip?.effectIntensity ?? 0)}`
   const previewVideoUrl = currentVideoClip?.sourceUrl || activeClip?.sourceUrl || videoUrl
+  const previewMediaClip = currentVideoClip ?? activeClip
+  const previewMediaType = previewMediaClip?.mediaType ?? 'video'
+  const previewCrop = previewMediaClip ? `inset(${previewMediaClip.cropTop}% ${previewMediaClip.cropRight}% ${previewMediaClip.cropBottom}% ${previewMediaClip.cropLeft}%)` : undefined
+  const outgoingCrop = previousVideoClip ? `inset(${previousVideoClip.cropTop}% ${previousVideoClip.cropRight}% ${previousVideoClip.cropBottom}% ${previousVideoClip.cropLeft}%)` : undefined
   const isCurrentVideoDetached = Boolean(currentVideoClip && audioClips.some((item) => item.sourceUrl === currentVideoClip.sourceUrl))
   const selectedVideoSource = activeClip?.sourceUrl || currentVideoClip?.sourceUrl || ''
   const isSelectedVideoDetached = Boolean(selectedVideoSource && audioClips.some((item) => item.sourceUrl === selectedVideoSource))
@@ -353,7 +487,7 @@ function App() {
     setTracks((items) => items.some((item) => item.type === type) ? items : orderTimelineTracks([...items, next]))
     return next.id
   }
-  const filteredStickerAssets = stickerAssets.filter((asset) => (stickerCategory === 'all' || asset.kind === stickerCategory) && `${asset.name} ${asset.keywords}`.toLowerCase().includes(stickerSearch.trim().toLowerCase()))
+  const filteredStickerAssets = [...importedGifAssets, ...stickerAssets].filter((asset) => (stickerCategory === 'all' || asset.kind === stickerCategory) && `${asset.name} ${asset.keywords}`.toLowerCase().includes(stickerSearch.trim().toLowerCase()))
   const formatZoomPercent = (value: number) => value >= .1 ? String(Math.round(value * 100)) : (value * 100).toFixed(2)
   const applyTimelineZoom = (value: number) => {
     const safe = Number.isFinite(value) ? Math.min(10000, Math.max(.0001, value)) : 1
@@ -381,19 +515,36 @@ function App() {
     setToast(t('zoomChanged', { zoom: formatZoomPercent(zoom) }))
   }
 
+  const ensureAudioGraph = () => {
+    const audio = audioRef.current
+    if (!audio || audioGainNodeRef.current) return
+    const context = new AudioContext()
+    const source = context.createMediaElementSource(audio)
+    const gain = context.createGain()
+    const destination = context.createMediaStreamDestination()
+    source.connect(gain)
+    gain.connect(context.destination)
+    gain.connect(destination)
+    audioContextRef.current = context
+    audioSourceNodeRef.current = source
+    audioGainNodeRef.current = gain
+    audioDestinationRef.current = destination
+    audio.volume = 1
+  }
+
   const togglePlayback = async () => {
     const video = videoRef.current
     if (videoUrl && video) {
       const clip = clips.find((item) => currentTime >= item.start && currentTime < item.start + item.duration) ?? [...clips].sort((a, b) => a.start - b.start)[0]
       if (clip && (currentTime < clip.start || currentTime >= clip.start + clip.duration)) seek(clip.start)
       if (isPlaying) { video.pause(); setIsPlaying(false) }
-      else { setIsPlaying(true); await video.play().catch(() => undefined) }
+      else { if (audioClips.length) { ensureAudioGraph(); await audioContextRef.current?.resume() }; setIsPlaying(true); await video.play().catch(() => undefined) }
     } else if (audioUrl) {
       if (isPlaying) setIsPlaying(false)
       else {
         const clip = audioClips.find((item) => currentTime >= item.start && currentTime < item.start + item.duration) ?? [...audioClips].sort((a, b) => a.start - b.start)[0]
         if (clip && (currentTime < clip.start || currentTime >= clip.start + clip.duration)) seek(clip.start)
-        setIsPlaying(true)
+        ensureAudioGraph(); await audioContextRef.current?.resume(); setIsPlaying(true)
       }
     } else setIsPlaying((value) => !value)
   }
@@ -495,10 +646,31 @@ function App() {
     if (audio.getAttribute('src') !== clip.sourceUrl) { audio.src = clip.sourceUrl; audio.load() }
     const wanted = clip.offset + currentTime - clip.start
     if (Math.abs(audio.currentTime - wanted) > .25) audio.currentTime = wanted
-    audio.volume = volume / 100
+    const gain = audioClipGain(clip, currentTime)
+    if (audioGainNodeRef.current && audioContextRef.current) {
+      audio.volume = 1
+      audioGainNodeRef.current.gain.setTargetAtTime(gain, audioContextRef.current.currentTime, .015)
+    } else audio.volume = Math.min(1, gain)
     if (isPlaying && audio.paused) void audio.play().catch(() => undefined)
     if (!isPlaying && !audio.paused) audio.pause()
-  }, [currentTime, isPlaying, audioUrl, audioClips, volume])
+  }, [currentTime, isPlaying, audioUrl, audioClips])
+
+  useEffect(() => {
+    if (!isPlaying || !audioUrl || !audioGainNodeRef.current || !audioContextRef.current) return
+    let frame = 0
+    const updateGain = () => {
+      const audio = audioRef.current
+      const clip = audioClips.find((item) => currentTime >= item.start && currentTime < item.start + item.duration)
+      if (audio && clip && audio.getAttribute('src') === clip.sourceUrl) {
+        const timelineTime = clip.start + audio.currentTime - clip.offset
+        const gain = audioClipGain(clip, timelineTime)
+        audioGainNodeRef.current?.gain.setValueAtTime(gain, audioContextRef.current!.currentTime)
+      }
+      frame = requestAnimationFrame(updateGain)
+    }
+    frame = requestAnimationFrame(updateGain)
+    return () => cancelAnimationFrame(frame)
+  }, [isPlaying, currentTime, audioUrl, audioClips])
 
   useEffect(() => {
     if (!toast) return
@@ -515,56 +687,71 @@ function App() {
     }
     recordingStreamRef.current?.getTracks().forEach((track) => track.stop())
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
+    audioSourceNodeRef.current?.disconnect()
+    audioGainNodeRef.current?.disconnect()
+    if (audioContextRef.current?.state !== 'closed') void audioContextRef.current?.close()
+    importedGifUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
   }, [])
 
   useEffect(() => {
-    if (videoUrl || !isPlaying) return
-    const timer = setInterval(() => setCurrentTime((time) => time >= duration ? 0 : time + 0.033 * speed), 33)
+    if (!isPlaying || (videoUrl && currentVideoClip?.mediaType !== 'image')) return
+    const timer = setInterval(() => setCurrentTime((time) => time >= projectDuration ? 0 : time + 0.033 * speed), 33)
     return () => clearInterval(timer)
-  }, [isPlaying, videoUrl, duration, speed])
+  }, [isPlaying, videoUrl, currentVideoClip?.mediaType, projectDuration, speed])
 
   const importFile = async (file: File) => {
     const url = URL.createObjectURL(file)
-    const sourceDuration = await new Promise<number>((resolve) => {
-      const probe = document.createElement('video')
-      probe.preload = 'metadata'
-      probe.onloadedmetadata = () => resolve(Number.isFinite(probe.duration) ? probe.duration : 15)
-      probe.onerror = () => resolve(15)
-      probe.src = url
+    const sourcePath = window.lumacut?.getFilePath(file) || undefined
+    const mediaType: MediaKind = file.type.startsWith('image/') ? 'image' : 'video'
+    const metadata = await new Promise<{ duration: number; width: number; height: number }>((resolve) => {
+      if (mediaType === 'image') {
+        const probe = new Image()
+        probe.onload = () => resolve({ duration: 5, width: probe.naturalWidth || 1920, height: probe.naturalHeight || 1080 })
+        probe.onerror = () => resolve({ duration: 5, width: 1920, height: 1080 })
+        probe.src = url
+      } else {
+        const probe = document.createElement('video')
+        probe.preload = 'metadata'
+        probe.onloadedmetadata = () => resolve({ duration: Number.isFinite(probe.duration) ? probe.duration : 15, width: probe.videoWidth || 1920, height: probe.videoHeight || 1080 })
+        probe.onerror = () => resolve({ duration: 15, width: 1920, height: 1080 })
+        probe.src = url
+      }
     })
+    const sourceDuration = mediaType === 'image' ? 3600 : metadata.duration
+    const displayDuration = metadata.duration
     const id = Date.now() + Math.floor(Math.random() * 1000)
     const trackId = ensureTrackId('video')
     const palette = ['#78dce8', '#a78bfa', '#fb7185', '#fbbf24', '#34d399', '#60a5fa']
     setVideoUrl((current) => current || url)
-    setVideoAssets((items) => [...items, { id, name: file.name, url, duration: sourceDuration }])
+    setVideoAssets((items) => [...items, { id, name: file.name, url, duration: displayDuration, sourcePath, mediaType, width: metadata.width, height: metadata.height }])
     setClips((items) => {
       const realClips = items.filter((item) => item.sourceUrl)
       const start = Math.max(0, ...realClips.map((item) => item.start + item.duration))
-      const next: Clip = { id, trackId, label: file.name.replace(/\.[^.]+$/, ''), start, duration: sourceDuration, offset: 0, sourceDuration, sourceUrl: url, color: palette[realClips.length % palette.length], animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8 }
+      const next: Clip = { id, trackId, label: file.name.replace(/\.[^.]+$/, ''), start, duration: displayDuration, offset: 0, sourceDuration, sourceUrl: url, sourcePath, color: palette[realClips.length % palette.length], mediaType, sourceWidth: metadata.width, sourceHeight: metadata.height, ...defaultMediaTransform, animation: 'none', animationDuration: 1, transition: 'none', transitionDuration: .8, videoEffect: 'none', effectIntensity: 70 }
       return [...realClips, next]
     })
-    setDuration((current) => current + sourceDuration)
+    setDuration((current) => current + displayDuration)
     setSelectedClip(id); setSelectedAudioClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0)
   }
 
   const importFiles = async (files: File[]) => {
-    const videos = files.filter((file) => file.type.startsWith('video/'))
-    if (!videos.length) return setToast(t('selectVideoFile'))
-    if (!videoUrl) { setFileName(videos[0].name); setCurrentTime(0); setDuration(0) }
-    for (const file of videos) await importFile(file)
-    setToast(videos.length > 1 ? t('importedVideos', { count: videos.length }) : t('importedVideo'))
+    const media = files.filter((file) => file.type.startsWith('video/') || (file.type.startsWith('image/') && file.type !== 'image/gif'))
+    if (!media.length) return setToast(t('selectMediaFile'))
+    if (!videoUrl) { setFileName(media[0].name); setCurrentTime(0); setDuration(0) }
+    for (const file of media) await importFile(file)
+    setToast(media.length > 1 ? t('importedMediaFiles', { count: media.length }) : t('importedMedia'))
   }
 
   const detachAudioFromVideo = () => {
     const sourceClip = activeClip ?? currentVideoClip
-    if (!sourceClip?.sourceUrl) return setToast(t('importVideoFirst'))
+    if (!sourceClip?.sourceUrl || sourceClip.mediaType === 'image') return setToast(t('selectVideoForAudio'))
     if (audioClips.some((item) => item.sourceUrl === sourceClip.sourceUrl && Math.abs(item.offset - sourceClip.offset) < .01)) return setToast(t('alreadyDetached'))
     const id = Date.now()
     const baseName = sourceClip.label.replace(/\s*\(\d+\)$/, '')
     const audioTrackId = ensureTrackId('audio')
     setAudioUrl(sourceClip.sourceUrl)
     setAudioName(t('sourceAudio', { name: baseName }))
-    setAudioClips((items) => [...items, { id, trackId: audioTrackId, label: t('audioSuffix', { name: baseName }), start: sourceClip.start, duration: sourceClip.duration, offset: sourceClip.offset, sourceDuration: sourceClip.sourceDuration, sourceUrl: sourceClip.sourceUrl }])
+    setAudioClips((items) => [...items, { id, trackId: audioTrackId, label: t('audioSuffix', { name: baseName }), start: sourceClip.start, duration: sourceClip.duration, offset: sourceClip.offset, sourceDuration: sourceClip.sourceDuration, sourceUrl: sourceClip.sourceUrl, sourcePath: sourceClip.sourcePath, volume: 100, fadeIn: 0, fadeOut: 0 }])
     setSelectedAudioClip(id)
     setSelectedClip(0)
     setSelectedTextClip(0)
@@ -578,21 +765,22 @@ function App() {
   const onDrop = (event: DragEvent) => {
     event.preventDefault(); setIsDragging(false)
     const files = Array.from(event.dataTransfer.files ?? [])
-    const videos = files.filter((file) => file.type.startsWith('video/'))
-    if (videos.length) void importFiles(videos)
+    const media = files.filter((file) => file.type.startsWith('video/') || (file.type.startsWith('image/') && file.type !== 'image/gif'))
+    if (media.length) void importFiles(media)
     else if (files[0]?.type.startsWith('audio/')) importAudio(files[0])
-    else setToast(t('selectVideoFile'))
+    else setToast(t('selectMediaFile'))
   }
   const importAudio = (file?: File) => {
     if (!file || !file.type.startsWith('audio/')) return setToast(t('selectAudioFile'))
     new Set(audioClips.map((clip) => clip.sourceUrl).filter((url) => url !== videoUrl)).forEach((url) => URL.revokeObjectURL(url))
     const url = URL.createObjectURL(file)
+    const sourcePath = window.lumacut?.getFilePath(file) || undefined
     const id = Date.now()
     setAudioUrl(url); setAudioName(file.name); setActiveTool('audio'); setIsAudioDetached(false)
     const probe = new Audio(url)
     probe.onloadedmetadata = () => {
       const audioDuration = Number.isFinite(probe.duration) ? probe.duration : 15
-      setAudioClips([{ id, trackId: ensureTrackId('audio'), label: file.name.replace(/\.[^.]+$/, ''), start: 0, duration: audioDuration, offset: 0, sourceDuration: audioDuration, sourceUrl: url }])
+      setAudioClips([{ id, trackId: ensureTrackId('audio'), label: file.name.replace(/\.[^.]+$/, ''), start: 0, duration: audioDuration, offset: 0, sourceDuration: audioDuration, sourceUrl: url, sourcePath, volume: 100, fadeIn: 0, fadeOut: 0 }])
       setSelectedAudioClip(id); setSelectedClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0)
     }
     setToast(t('importedAudio'))
@@ -635,7 +823,7 @@ function App() {
         const audioTrackId = ensureTrackId('audio')
         setAudioUrl(url)
         setAudioName(label)
-        setAudioClips((items) => [...items, { id, trackId: audioTrackId, label, start: recordingTimelineStartRef.current, duration: recordedDuration, offset: 0, sourceDuration: recordedDuration, sourceUrl: url }])
+        setAudioClips((items) => [...items, { id, trackId: audioTrackId, label, start: recordingTimelineStartRef.current, duration: recordedDuration, offset: 0, sourceDuration: recordedDuration, sourceUrl: url, volume: 100, fadeIn: 0, fadeOut: 0 }])
         setSelectedAudioClip(id); setSelectedClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0); setActiveTool('audio')
         setToast(t('recordedAudio', { duration: recordedDuration.toFixed(1) }))
       }
@@ -692,6 +880,8 @@ function App() {
       const isTyping = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement
       if (event.code === 'Space' && !isTyping) { event.preventDefault(); void togglePlayback() }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b' && !isTyping) { event.preventDefault(); splitClip() }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void saveProject() }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'o') { event.preventDefault(); void openProject() }
       if ((event.key === 'Delete' || event.key === 'Backspace') && !isTyping) { event.preventDefault(); deleteClip() }
     }
     window.addEventListener('keydown', onKey)
@@ -708,17 +898,80 @@ function App() {
     setTextClips((items) => items.map((item) => item.id === activeTextClip.id ? { ...item, ...patch } : item))
   }
 
+  const updateAudioClip = (patch: Partial<AudioClip>) => {
+    if (!activeAudioClip) return
+    setAudioClips((items) => items.map((item) => item.id === activeAudioClip.id ? { ...item, ...patch } : item))
+  }
+
   const updateVideoClip = (patch: Partial<Clip>) => {
     if (!activeClip) return
     setClips((items) => items.map((item) => item.id === activeClip.id ? { ...item, ...patch } : item))
   }
 
+  const applyCanvasPreset = (preset: CanvasPreset) => {
+    setCanvasPreset(preset)
+    const dimensions = canvasPresets.find((item) => item.value === preset)
+    if (dimensions) { setCanvasWidth(dimensions.width); setCanvasHeight(dimensions.height) }
+  }
+
+  const commitCanvasDimension = (axis: 'width' | 'height', value: number) => {
+    const safe = Math.round(Math.min(8192, Math.max(64, Number.isFinite(value) ? value : 1080)))
+    setCanvasPreset('custom')
+    if (axis === 'width') setCanvasWidth(safe)
+    else setCanvasHeight(safe)
+  }
+
+  const resetMediaTransform = () => updateVideoClip(defaultMediaTransform)
+  const updateMediaCrop = (edge: keyof Pick<MediaTransform, 'cropLeft' | 'cropRight' | 'cropTop' | 'cropBottom'>, value: number) => {
+    if (!activeClip) return
+    const opposite = edge === 'cropLeft' ? activeClip.cropRight : edge === 'cropRight' ? activeClip.cropLeft : edge === 'cropTop' ? activeClip.cropBottom : activeClip.cropTop
+    updateVideoClip({ [edge]: Math.max(0, Math.min(45, 95 - opposite, value)) } as Partial<Clip>)
+  }
+  const updateStickerCrop = (edge: keyof Pick<StickerClip, 'cropLeft' | 'cropRight' | 'cropTop' | 'cropBottom'>, value: number) => {
+    if (!activeStickerClip) return
+    const opposite = edge === 'cropLeft' ? activeStickerClip.cropRight : edge === 'cropRight' ? activeStickerClip.cropLeft : edge === 'cropTop' ? activeStickerClip.cropBottom : activeStickerClip.cropTop
+    updateSticker({ [edge]: Math.max(0, Math.min(45, 95 - opposite, value)) } as Partial<StickerClip>)
+  }
+
+  const applyVideoEffect = (videoEffect: VideoEffectPreset) => {
+    const target = activeClip ?? currentVideoClip
+    if (!target) return setToast(t('selectVideoForEffect'))
+    setClips((items) => items.map((item) => item.id === target.id ? { ...item, videoEffect } : item))
+    setSelectedClip(target.id)
+    seek(Math.max(target.start, Math.min(currentTime, target.start + target.duration - .05)))
+    setToast(t('effectApplied', { effect: videoEffect === 'none' ? t('effectNone') : videoEffect === 'VHS' ? t('vhs') : t(videoEffect) }))
+  }
+
+  const updateVideoEffectIntensity = (effectIntensity: number) => {
+    const target = activeClip ?? currentVideoClip
+    if (!target) return
+    setClips((items) => items.map((item) => item.id === target.id ? { ...item, effectIntensity } : item))
+    setSelectedClip(target.id)
+  }
+
   const addSticker = (asset: StickerAsset) => {
     const id = stickerClips.reduce((highest, item) => Math.max(highest, item.id), 1000) + 1
-    const next: StickerClip = { id, trackId: ensureTrackId('sticker'), name: asset.name, src: asset.src, start: currentTime, duration: Math.max(1, Math.min(4, projectDuration - currentTime || 4)), x: 50, y: 50, size: 26, rotation: 0, opacity: 100, animation: 'none', animationDuration: 1 }
+    const next: StickerClip = { id, trackId: ensureTrackId('sticker'), name: asset.name, src: asset.src, sourcePath: asset.sourcePath, start: currentTime, duration: Math.max(1, Math.min(4, projectDuration - currentTime || 4)), x: 50, y: 50, size: 26, rotation: 0, opacity: 100, cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0, animation: 'none', animationDuration: 1 }
     setStickerClips((items) => [...items, next])
     setSelectedStickerClip(id); setSelectedTextClip(0); setSelectedCaptionClip(0); setSelectedClip(0); setSelectedAudioClip(0); setActiveTool('stickers')
     setToast(t('added', { item: asset.name }))
+  }
+
+  const importGif = (file?: File) => {
+    if (!file) return
+    if (file.type !== 'image/gif' && !file.name.toLowerCase().endsWith('.gif')) return setToast(t('selectGifFile'))
+    const url = URL.createObjectURL(file)
+    const sourcePath = window.lumacut?.getFilePath(file) || undefined
+    const asset: StickerAsset = { name: file.name.replace(/\.gif$/i, ''), keywords: `gif ${file.name}`, src: url, sourcePath, kind: 'gif' }
+    importedGifUrlsRef.current.push(url)
+    setImportedGifAssets((items) => [asset, ...items])
+    const image = new Image()
+    image.src = url
+    stickerImagesRef.current.set(url, image)
+    setStickerCategory('gif')
+    setStickerSearch('')
+    addSticker(asset)
+    setToast(t('gifImported', { name: asset.name }))
   }
 
   const updateSticker = (patch: Partial<StickerClip>) => {
@@ -888,7 +1141,7 @@ function App() {
     if (track.type === 'text') return <div key={track.id} className="track text-track" data-track-id={track.id} data-track-type={track.type}>{textClips.filter((item) => item.trackId === track.id).map((item) => <button key={item.id} className={`text-clip draggable ${selectedTextClip === item.id ? 'selected' : ''}`} style={{left: item.start * pxPerSecond, width: Math.max(item.duration * pxPerSecond, 1)}} onPointerDown={(e) => beginDrag(e, 'text', item.id, item.start)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={(e) => {e.stopPropagation();seek(item.start)}}><TextCursorInput size={13}/><span>{item.text || t('text')}</span><small>{item.duration.toFixed(1)}s</small><div className="drag-grip">•••</div><div className="clip-resize-handle" title={t('resizeDuration')} onPointerDown={(e) => beginResize(e, 'text', item.id, item.duration, 3600)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/></button>)}</div>
     if (track.type === 'sticker') return <div key={track.id} className="track sticker-track" data-track-id={track.id} data-track-type={track.type}>{stickerClips.filter((item) => item.trackId === track.id).map((item) => <button key={item.id} className={`sticker-clip draggable ${selectedStickerClip === item.id ? 'selected' : ''}`} style={{left: item.start * pxPerSecond, width: Math.max(item.duration * pxPerSecond, 1)}} onPointerDown={(e) => beginDrag(e, 'sticker', item.id, item.start)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={(e) => {e.stopPropagation();seek(item.start)}}><img src={item.src} alt=""/><span>{item.name}</span><small>{item.duration.toFixed(1)}s</small><div className="drag-grip">•••</div><div className="clip-resize-handle" title={t('resizeDuration')} onPointerDown={(e) => beginResize(e, 'sticker', item.id, item.duration, 3600)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/></button>)}</div>
     if (track.type === 'caption') return <div key={track.id} className="track caption-track" data-track-id={track.id} data-track-type={track.type}>{captionClips.filter((item) => item.trackId === track.id).map((item) => <button key={item.id} className={`caption-clip draggable ${selectedCaptionClip === item.id ? 'selected' : ''}`} style={{left: item.start * pxPerSecond, width: Math.max(item.duration * pxPerSecond, 1)}} onPointerDown={(e) => beginDrag(e, 'caption', item.id, item.start)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={(e) => {e.stopPropagation();seek(item.start)}}><Captions size={13}/><span>{item.text || t('captions')}</span><small>{item.duration.toFixed(1)}s</small><div className="drag-grip">•••</div><div className="clip-resize-handle" title={t('resizeDuration')} onPointerDown={(e) => beginResize(e, 'caption', item.id, item.duration, 3600)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/></button>)}</div>
-    return <div key={track.id} className="track audio-track" data-track-id={track.id} data-track-type={track.type}>{audioClips.filter((clip) => clip.trackId === track.id).map((clip) => <button key={clip.id} className={`audio-clip draggable ${selectedAudioClip === clip.id ? 'selected' : ''}`} style={{left: clip.start * pxPerSecond, width: Math.max(clip.duration * pxPerSecond, 1)}} onPointerDown={(e) => beginDrag(e, 'audio', clip.id, clip.start)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={(e) => {e.stopPropagation();seek(clip.start)}}><div className="clip-resize-handle left" title={t('trimStart')} onPointerDown={(e) => beginStartResize(e, 'audio', clip.id, clip.start, clip.duration, clip.offset)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/>{Array.from({length: Math.max(12, Math.ceil(clip.duration * 6))}, (_, i) => <i key={i} style={{height: `${18 + ((i * 17) % 70)}%`}}/>)}<span>{clip.label}</span><div className="drag-grip">•••</div><div className="clip-resize-handle" title={t('resizeDuration')} onPointerDown={(e) => beginResize(e, 'audio', clip.id, clip.duration, clip.sourceDuration - clip.offset)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/></button>)}</div>
+    return <div key={track.id} className="track audio-track" data-track-id={track.id} data-track-type={track.type}>{audioClips.filter((clip) => clip.trackId === track.id).map((clip) => <button key={clip.id} className={`audio-clip draggable ${selectedAudioClip === clip.id ? 'selected' : ''}`} style={{left: clip.start * pxPerSecond, width: Math.max(clip.duration * pxPerSecond, 1)}} onPointerDown={(e) => beginDrag(e, 'audio', clip.id, clip.start)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={(e) => {e.stopPropagation();seek(clip.start)}}><div className="audio-fade-envelope" style={{clipPath: audioEnvelopePath(clip)}}/><div className="clip-resize-handle left" title={t('trimStart')} onPointerDown={(e) => beginStartResize(e, 'audio', clip.id, clip.start, clip.duration, clip.offset)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/>{Array.from({length: Math.max(12, Math.ceil(clip.duration * 6))}, (_, i) => <i key={i} style={{height: `${18 + ((i * 17) % 70)}%`}}/>)}<span>{clip.label}</span><div className="drag-grip">•••</div><div className="clip-resize-handle" title={t('resizeDuration')} onPointerDown={(e) => beginResize(e, 'audio', clip.id, clip.duration, clip.sourceDuration - clip.offset)} onPointerMove={moveResize} onPointerUp={endResize} onPointerCancel={endResize}/></button>)}</div>
   }
 
   const beginTextPosition = (event: ReactPointerEvent<HTMLDivElement>, clip: TextClip) => {
@@ -923,13 +1176,172 @@ function App() {
   }
   const endStickerPosition = () => { if (stickerPositionRef.current) { stickerPositionRef.current = null; setToast(t('moved', { item: t('stickers') })) } }
 
+  const beginMediaPosition = (event: ReactPointerEvent<HTMLDivElement>, clip: Clip) => {
+    event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId)
+    mediaPositionRef.current = { id: clip.id, pointerX: event.clientX, pointerY: event.clientY, x: clip.positionX, y: clip.positionY }
+    setSelectedClip(clip.id); setSelectedAudioClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0); setVideoInspectorTab('video')
+  }
+  const moveMediaPosition = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = mediaPositionRef.current
+    if (!drag) return
+    const canvas = event.currentTarget.parentElement?.getBoundingClientRect()
+    if (!canvas) return
+    const positionX = Math.max(-100, Math.min(100, drag.x + (event.clientX - drag.pointerX) / canvas.width * 100))
+    const positionY = Math.max(-100, Math.min(100, drag.y + (event.clientY - drag.pointerY) / canvas.height * 100))
+    setClips((items) => items.map((item) => item.id === drag.id ? { ...item, positionX, positionY } : item))
+  }
+  const endMediaPosition = () => { if (mediaPositionRef.current) { mediaPositionRef.current = null; setToast(t('mediaPositioned')) } }
+
+  const blobUrlToDataUrl = async (url: string) => {
+    if (!url.startsWith('blob:')) return undefined
+    const blob = await fetch(url).then((response) => response.blob())
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result))
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(blob)
+    })
+  }
+
+  async function saveProject() {
+    if (isSavingProject) return
+    setIsSavingProject(true)
+    try {
+      const embeddedCache = new Map<string, Promise<string | undefined>>()
+      const embed = (url: string, sourcePath?: string) => {
+        if (sourcePath || !url.startsWith('blob:')) return Promise.resolve(undefined)
+        if (!embeddedCache.has(url)) embeddedCache.set(url, blobUrlToDataUrl(url))
+        return embeddedCache.get(url)!
+      }
+      const savedVideoAssets = await Promise.all(videoAssets.map(async (item) => ({ ...item, url: item.sourcePath || item.url.startsWith('blob:') ? '' : item.url, embeddedSource: await embed(item.url, item.sourcePath) })))
+      const savedClips = await Promise.all(clips.map(async (item) => ({ ...item, sourceUrl: item.sourcePath || item.sourceUrl.startsWith('blob:') ? '' : item.sourceUrl, embeddedSource: await embed(item.sourceUrl, item.sourcePath) })))
+      const savedAudioClips = await Promise.all(audioClips.map(async (item) => ({ ...item, sourceUrl: item.sourcePath || item.sourceUrl.startsWith('blob:') ? '' : item.sourceUrl, embeddedSource: await embed(item.sourceUrl, item.sourcePath) })))
+      const savedStickerClips = await Promise.all(stickerClips.map(async (item) => ({ ...item, src: item.sourcePath || item.src.startsWith('blob:') ? '' : item.src, embeddedSource: await embed(item.src, item.sourcePath) })))
+      const savedGifAssets = await Promise.all(importedGifAssets.map(async (item) => ({ ...item, src: item.sourcePath || item.src.startsWith('blob:') ? '' : item.src, embeddedSource: await embed(item.src, item.sourcePath) })))
+      const projectDocument: ProjectDocument = {
+        format: 'lumacut-project', schemaVersion: 1, projectName: projectName.trim() || t('untitledProject'), savedAt: new Date().toISOString(), tracks,
+        videoAssets: savedVideoAssets, clips: savedClips, audioClips: savedAudioClips, textClips, stickerClips: savedStickerClips, captionClips, importedGifAssets: savedGifAssets,
+        settings: { duration, currentTime, selectedClip, selectedAudioClip, selectedTextClip, selectedStickerClip, selectedCaptionClip, zoom, speed, volume, videoOpacity, brightness, contrast, saturation, exportCodec, exportResolution, exportFrameRate, canvasPreset, canvasWidth, canvasHeight },
+      }
+      const contents = JSON.stringify(projectDocument, null, 2)
+      const safeName = (projectDocument.projectName || 'lumacut-project').replace(/[\\/:*?"<>|]+/g, '-').trim() || 'lumacut-project'
+      if (window.lumacut) {
+        const savedPath = await window.lumacut.saveProject(`${safeName}.lumacut`, contents, projectFilePath)
+        if (!savedPath) return
+        setProjectFilePath(savedPath)
+      } else {
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(new Blob([contents], { type: 'application/json' }))
+        link.download = `${safeName}.lumacut`
+        link.click()
+        URL.revokeObjectURL(link.href)
+      }
+      setProjectName(projectDocument.projectName)
+      setToast(t('projectSaved'))
+    } catch {
+      setToast(t('projectSaveFailed'))
+    } finally {
+      setIsSavingProject(false)
+    }
+  }
+
+  async function openProject() {
+    if (!window.lumacut || isSavingProject) return
+    try {
+      const opened = await window.lumacut.openProject()
+      if (!opened) return
+      const document = JSON.parse(opened.contents) as ProjectDocument
+      if (document.format !== 'lumacut-project' || document.schemaVersion !== 1 || !Array.isArray(document.clips) || !Array.isArray(document.tracks)) throw new Error('invalid-project')
+      const restoreUrl = async (sourcePath: string | undefined, embeddedSource: string | undefined, fallback: string) => sourcePath ? window.lumacut!.mediaFileUrl(sourcePath) : embeddedSource || fallback
+      const loadedVideoAssets = await Promise.all((document.videoAssets ?? []).map(async (item) => ({ ...item, mediaType: item.mediaType ?? 'video' as MediaKind, width: item.width ?? 1920, height: item.height ?? 1080, url: await restoreUrl(item.sourcePath, item.embeddedSource, item.url) })))
+      const loadedClips = await Promise.all(document.clips.map(async (item) => normalizeClip({ ...item, sourceUrl: await restoreUrl(item.sourcePath, item.embeddedSource, item.sourceUrl) })))
+      const loadedAudioClips = await Promise.all((document.audioClips ?? []).map(async (item) => ({ ...item, sourceUrl: await restoreUrl(item.sourcePath, item.embeddedSource, item.sourceUrl) })))
+      const loadedStickerClips = await Promise.all((document.stickerClips ?? []).map(async (item) => normalizeSticker({ ...item, src: await restoreUrl(item.sourcePath, item.embeddedSource, item.src) })))
+      const loadedGifAssets = await Promise.all((document.importedGifAssets ?? []).map(async (item) => ({ ...item, src: await restoreUrl(item.sourcePath, item.embeddedSource, item.src) })))
+      new Set([...videoAssets.map((item) => item.url), ...audioClips.map((item) => item.sourceUrl), ...importedGifAssets.map((item) => item.src)].filter((url) => url.startsWith('blob:'))).forEach((url) => URL.revokeObjectURL(url))
+      importedGifUrlsRef.current = []
+      setTracks(orderTimelineTracks(document.tracks))
+      setVideoAssets(loadedVideoAssets)
+      setClips(loadedClips)
+      setAudioClips(loadedAudioClips)
+      setTextClips(document.textClips ?? [])
+      setStickerClips(loadedStickerClips)
+      setCaptionClips(document.captionClips ?? [])
+      setImportedGifAssets(loadedGifAssets)
+      loadedGifAssets.forEach((asset) => { const image = new Image(); image.src = asset.src; stickerImagesRef.current.set(asset.src, image) })
+      const settings = document.settings
+      setDuration(settings?.duration ?? Math.max(15, ...loadedClips.map((item) => item.start + item.duration)))
+      setCurrentTime(settings?.currentTime ?? 0)
+      setSelectedClip(settings?.selectedClip ?? loadedClips[0]?.id ?? 0)
+      setSelectedAudioClip(settings?.selectedAudioClip ?? 0)
+      setSelectedTextClip(settings?.selectedTextClip ?? 0)
+      setSelectedStickerClip(settings?.selectedStickerClip ?? 0)
+      setSelectedCaptionClip(settings?.selectedCaptionClip ?? 0)
+      const loadedZoom = settings?.zoom ?? 1
+      setZoom(loadedZoom); setZoomPercentInput(formatZoomPercent(loadedZoom))
+      setSpeed(settings?.speed ?? 1); setVolume(settings?.volume ?? 100); setVideoOpacity(settings?.videoOpacity ?? 100)
+      setBrightness(settings?.brightness ?? 0); setContrast(settings?.contrast ?? 0); setSaturation(settings?.saturation ?? 0)
+      setExportCodec(settings?.exportCodec ?? 'vp9'); setExportResolution(settings?.exportResolution ?? '1080p'); setExportFrameRate(settings?.exportFrameRate ?? 30)
+      setCanvasPreset(settings?.canvasPreset ?? '16:9'); setCanvasWidth(settings?.canvasWidth ?? 1920); setCanvasHeight(settings?.canvasHeight ?? 1080)
+      const firstVideo = loadedClips.find((item) => item.sourceUrl)
+      const firstAudio = loadedAudioClips.find((item) => item.sourceUrl)
+      setVideoUrl(firstVideo?.sourceUrl ?? '')
+      setFileName(loadedVideoAssets[0]?.name ?? firstVideo?.label ?? 'video.mp4')
+      setAudioUrl(firstAudio?.sourceUrl ?? ''); setAudioName(firstAudio?.label ?? '')
+      setIsAudioDetached(loadedAudioClips.some((audioClip) => loadedClips.some((videoClip) => audioClip.sourcePath && audioClip.sourcePath === videoClip.sourcePath)))
+      setProjectName(document.projectName || t('untitledProject'))
+      setProjectFilePath(opened.filePath)
+      setExportPath('')
+      setActiveTool('media')
+      setToast(t('projectOpened'))
+    } catch {
+      setToast(t('projectOpenFailed'))
+    }
+  }
+
+  const defaultExportName = `${fileName.replace(/\.[^.]+$/, '') || 'lumacut-project'}-lumacut.webm`
+  const chooseExportPath = async () => {
+    const selected = await window.lumacut?.chooseExportPath(defaultExportName)
+    if (selected) setExportPath(selected)
+    return selected ?? ''
+  }
+  const formatEta = (totalSeconds: number) => {
+    const safe = Math.max(0, Math.round(totalSeconds))
+    const minutes = Math.floor(safe / 60)
+    const seconds = safe % 60
+    return minutes ? `${minutes}m ${seconds.toString().padStart(2, '0')}s` : `${seconds}s`
+  }
+
   const exportVideo = async () => {
-    const video = videoRef.current
     const canvas = canvasRef.current
-    const orderedVideoClips = clips.filter((item) => item.sourceUrl).sort((a, b) => a.start - b.start)
-    if (!orderedVideoClips.length || !video || !canvas) return setToast(t('exportFirst'))
+    const orderedMediaClips = clips.filter((item) => item.sourceUrl).sort((a, b) => a.start - b.start)
+    if (!orderedMediaClips.length || !canvas) return setToast(t('exportFirst'))
+    const video = document.createElement('video')
+    video.preload = 'auto'
+    video.playsInline = true
+    video.muted = true
+    let destinationPath = exportPath
+    if (window.lumacut && !destinationPath) {
+      destinationPath = await chooseExportPath()
+      if (!destinationPath) return
+    }
     setIsExporting(true)
+    setExportFinished(false)
+    setExportProgress(0)
+    setExportEtaSeconds(null)
+    exportProgressTimeRef.current = 0
     setToast(t('preparingVideo'))
+    const exportStartedAt = performance.now()
+    const exportTimelineDuration = Math.max(.1, ...orderedMediaClips.map((clip) => clip.start + clip.duration))
+    const reportExportProgress = (exportTime: number, force = false) => {
+      const now = performance.now()
+      if (!force && now - exportProgressTimeRef.current < 180) return
+      exportProgressTimeRef.current = now
+      const ratio = Math.max(0, Math.min(.99, exportTime / exportTimelineDuration))
+      const elapsed = (now - exportStartedAt) / 1000
+      setExportProgress(Math.round(ratio * 100))
+      setExportEtaSeconds(ratio > .005 ? Math.max(0, elapsed / ratio * (1 - ratio)) : null)
+    }
     try {
       const loadVideoClip = async (clip: Clip) => {
         if (video.getAttribute('src') !== clip.sourceUrl) {
@@ -950,37 +1362,119 @@ function App() {
           await new Promise<void>((resolve) => video.addEventListener('seeked', () => resolve(), { once: true }))
         }
       }
-      await loadVideoClip(orderedVideoClips[0])
+      const firstVideoClip = orderedMediaClips.find((clip) => clip.mediaType === 'video')
+      if (firstVideoClip) await loadVideoClip(firstVideoClip)
       const ctx = canvas.getContext('2d')!
-      canvas.width = video.videoWidth || 1280
-      canvas.height = video.videoHeight || 720
-      const stream = canvas.captureStream(30)
+      const resolution = exportResolutionOptions.find((option) => option.value === exportResolution) ?? exportResolutionOptions[3]
+      if (resolution.value === 'source') { canvas.width = canvasWidth; canvas.height = canvasHeight }
+      else {
+        const longEdge = Math.max(resolution.width, resolution.height)
+        const ratio = canvasWidth / canvasHeight
+        canvas.width = Math.max(2, Math.round((ratio >= 1 ? longEdge : longEdge * ratio) / 2) * 2)
+        canvas.height = Math.max(2, Math.round((ratio >= 1 ? longEdge / ratio : longEdge) / 2) * 2)
+      }
+      const stream = canvas.captureStream(exportFrameRate)
       const mediaStreamVideo = video as HTMLVideoElement & { captureStream?: () => MediaStream }
       const mediaStreamAudio = audioRef.current as (HTMLAudioElement & { captureStream?: () => MediaStream }) | null
-      if (audioClips.length > 0 && mediaStreamAudio?.captureStream) mediaStreamAudio.captureStream().getAudioTracks().forEach((track) => stream.addTrack(track))
+      if (audioClips.length > 0) { ensureAudioGraph(); await audioContextRef.current?.resume() }
+      if (audioClips.length > 0 && audioDestinationRef.current) audioDestinationRef.current.stream.getAudioTracks().forEach((track) => stream.addTrack(track))
+      else if (audioClips.length > 0 && mediaStreamAudio?.captureStream) mediaStreamAudio.captureStream().getAudioTracks().forEach((track) => stream.addTrack(track))
       else mediaStreamVideo.captureStream?.().getAudioTracks().forEach((track) => stream.addTrack(track))
-      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' })
+      const requestedMimeType = `video/webm;codecs=${exportCodec}`
+      const mimeType = MediaRecorder.isTypeSupported(requestedMimeType) ? requestedMimeType : MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm'
+      const pixels = canvas.width * canvas.height
+      const videoBitsPerSecond = Math.round(Math.max(2_000_000, Math.min(36_000_000, pixels * exportFrameRate * .16)))
+      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond })
       const exportTransitionVideo = document.createElement('video')
       exportTransitionVideo.preload = 'auto'
       exportTransitionVideo.muted = true
       exportTransitionVideo.playbackRate = speed
       exportTransitionVideo.load()
+      const exportImages = new Map<string, HTMLImageElement>()
+      const loadImageClip = async (clip: Clip) => {
+        const cached = exportImages.get(clip.sourceUrl)
+        if (cached?.complete && cached.naturalWidth) return cached
+        const image = cached ?? new Image()
+        exportImages.set(clip.sourceUrl, image)
+        if (!image.src) image.src = clip.sourceUrl
+        if (!image.complete || !image.naturalWidth) await new Promise<void>((resolve, reject) => { image.onload = () => resolve(); image.onerror = () => reject(new Error('image-load-failed')) })
+        return image
+      }
+      await Promise.all(orderedMediaClips.filter((clip) => clip.mediaType === 'image').map(loadImageClip))
       const chunks: Blob[] = []
       recorder.ondataavailable = (event) => event.data.size && chunks.push(event.data)
       const finished = new Promise<void>((resolve) => { recorder.onstop = () => resolve() })
       video.muted = true
       recorder.start(250)
-      const drawVideoLayer = (source: HTMLVideoElement, frame: VisualFrame) => {
-        if (source.readyState < 2 || frame.opacity <= 0) return
+      const drawVideoLayer = (source: HTMLVideoElement | HTMLImageElement, frame: VisualFrame, effectClip?: Clip) => {
+        const ready = source instanceof HTMLVideoElement ? source.readyState >= 2 : source.complete && source.naturalWidth > 0
+        if (!ready || frame.opacity <= 0) return
+        const naturalWidth = source instanceof HTMLVideoElement ? source.videoWidth : source.naturalWidth
+        const naturalHeight = source instanceof HTMLVideoElement ? source.videoHeight : source.naturalHeight
+        const cropLeft = effectClip?.cropLeft ?? 0
+        const cropRight = effectClip?.cropRight ?? 0
+        const cropTop = effectClip?.cropTop ?? 0
+        const cropBottom = effectClip?.cropBottom ?? 0
+        const sourceX = naturalWidth * cropLeft / 100
+        const sourceY = naturalHeight * cropTop / 100
+        const sourceWidth = Math.max(1, naturalWidth * (1 - (cropLeft + cropRight) / 100))
+        const sourceHeight = Math.max(1, naturalHeight * (1 - (cropTop + cropBottom) / 100))
+        const coverScale = Math.max(canvas.width / sourceWidth, canvas.height / sourceHeight)
+        const drawWidth = sourceWidth * coverScale
+        const drawHeight = sourceHeight * coverScale
         ctx.save()
-        ctx.filter = filter
+        ctx.filter = `${filter} ${videoEffectFilter(effectClip?.videoEffect ?? 'none', effectClip?.effectIntensity ?? 0)}`
         ctx.globalAlpha = frame.opacity * videoOpacity / 100
-        ctx.translate(canvas.width * (.5 + frame.x / 100), canvas.height * (.5 + frame.y / 100))
-        ctx.scale(frame.scale, frame.scale)
-        ctx.drawImage(source, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height)
+        ctx.translate(canvas.width * (.5 + (frame.x + (effectClip?.positionX ?? 0)) / 100), canvas.height * (.5 + (frame.y + (effectClip?.positionY ?? 0)) / 100))
+        const clipScale = (effectClip?.scale ?? 100) / 100
+        ctx.scale(frame.scale * clipScale, frame.scale * clipScale)
+        ctx.drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight)
+        ctx.restore()
+      }
+      const drawVideoEffectOverlay = (clip: Clip, exportTime: number) => {
+        const amount = Math.max(0, Math.min(1, clip.effectIntensity / 100))
+        if (!amount || clip.videoEffect === 'none' || clip.videoEffect === 'blur' || clip.videoEffect === 'soft') return
+        ctx.save()
+        ctx.filter = 'none'
+        if (clip.videoEffect === 'film') {
+          const vignette = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, canvas.width * .12, canvas.width / 2, canvas.height / 2, canvas.width * .72)
+          vignette.addColorStop(0, 'rgba(0,0,0,0)')
+          vignette.addColorStop(1, `rgba(20,8,2,${.48 * amount})`)
+          ctx.fillStyle = vignette
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+        } else if (clip.videoEffect === 'lightLeak') {
+          const pulse = .78 + Math.sin(exportTime * 2.4) * .12
+          const leak = ctx.createRadialGradient(canvas.width * .9, canvas.height * .2, 0, canvas.width * .9, canvas.height * .2, canvas.width * .72)
+          leak.addColorStop(0, `rgba(255,224,126,${.58 * amount * pulse})`)
+          leak.addColorStop(.35, `rgba(255,82,82,${.3 * amount * pulse})`)
+          leak.addColorStop(1, 'rgba(255,40,80,0)')
+          ctx.fillStyle = leak
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+        } else if (clip.videoEffect === 'grain') {
+          const tick = Math.floor(exportTime * 18)
+          ctx.fillStyle = `rgba(255,255,255,${.22 * amount})`
+          for (let index = 0; index < 260; index += 1) {
+            const x = (index * 733 + tick * 97) % canvas.width
+            const y = (index * 379 + tick * 53) % canvas.height
+            const size = 1 + ((index + tick) % 3)
+            ctx.fillRect(x, y, size, size)
+          }
+        } else if (clip.videoEffect === 'VHS') {
+          ctx.fillStyle = `rgba(2,8,18,${.22 * amount})`
+          for (let y = 0; y < canvas.height; y += 7) ctx.fillRect(0, y, canvas.width, 2)
+          const bandY = (exportTime * 95) % (canvas.height + 80) - 40
+          ctx.fillStyle = `rgba(100,235,255,${.14 * amount})`
+          ctx.fillRect(0, bandY, canvas.width, 24)
+        }
         ctx.restore()
       }
       const renderFrame = (exportTime: number, exportClip?: Clip) => {
+        reportExportProgress(exportTime)
+        const exportAudioClip = audioClips.find((item) => exportTime >= item.start && exportTime < item.start + item.duration)
+        if (audioGainNodeRef.current && audioContextRef.current) {
+          const gain = exportAudioClip ? audioClipGain(exportAudioClip, exportTime) : 0
+          audioGainNodeRef.current.gain.setValueAtTime(gain, audioContextRef.current.currentTime)
+        }
         const exportPrevious = exportClip ? [...clips].filter((item) => item.trackId === exportClip.trackId && item.start < exportClip.start).sort((a, b) => b.start - a.start)[0] : undefined
         const adjacent = Boolean(exportClip && exportPrevious && Math.abs(exportPrevious.start + exportPrevious.duration - exportClip.start) < .11)
         const transition = exportClip && adjacent ? transitionFrame(exportClip.transition, exportClip.start, Math.min(exportClip.transitionDuration, exportClip.duration, exportPrevious!.duration), exportTime) : transitionFrame('none', 0, 1, 0)
@@ -991,14 +1485,20 @@ function App() {
         if (transition.active && exportClip && exportPrevious) {
           const transitionDuration = Math.min(exportClip.transitionDuration, exportClip.duration, exportPrevious.duration)
           const wanted = exportPrevious.offset + exportPrevious.duration - transitionDuration + (exportTime - exportClip.start)
-          if (exportTransitionVideo.getAttribute('src') !== exportPrevious.sourceUrl) { exportTransitionVideo.src = exportPrevious.sourceUrl; exportTransitionVideo.load() }
-          if (exportTransitionVideo.readyState >= 1) {
-            if (Math.abs(exportTransitionVideo.currentTime - wanted) > .1) exportTransitionVideo.currentTime = Math.max(exportPrevious.offset, wanted)
-            if (exportTransitionVideo.paused) void exportTransitionVideo.play().catch(() => undefined)
-            drawVideoLayer(exportTransitionVideo, transition.previous)
+          if (exportPrevious.mediaType === 'image') drawVideoLayer(exportImages.get(exportPrevious.sourceUrl)!, transition.previous, exportPrevious)
+          else {
+            if (exportTransitionVideo.getAttribute('src') !== exportPrevious.sourceUrl) { exportTransitionVideo.src = exportPrevious.sourceUrl; exportTransitionVideo.load() }
+            if (exportTransitionVideo.readyState >= 1) {
+              if (Math.abs(exportTransitionVideo.currentTime - wanted) > .1) exportTransitionVideo.currentTime = Math.max(exportPrevious.offset, wanted)
+              if (exportTransitionVideo.paused) void exportTransitionVideo.play().catch(() => undefined)
+              drawVideoLayer(exportTransitionVideo, transition.previous, exportPrevious)
+            }
           }
         } else exportTransitionVideo.pause()
-        if (exportClip) drawVideoLayer(video, videoFrame)
+        if (exportClip) {
+          drawVideoLayer(exportClip.mediaType === 'image' ? exportImages.get(exportClip.sourceUrl)! : video, videoFrame, exportClip)
+          drawVideoEffectOverlay(exportClip, exportTime)
+        }
         textClips.filter((item) => exportTime >= item.start && exportTime < item.start + item.duration).forEach((item) => {
           const frame = animationFrame(item.animation, item.start, item.duration, item.animationDuration, exportTime)
           const displayText = animatedText(item.text, item.animation, item.start, item.duration, item.animationDuration, exportTime)
@@ -1045,7 +1545,11 @@ function App() {
           ctx.scale(frame.scale, frame.scale)
           ctx.shadowColor = 'rgba(0,0,0,.25)'
           ctx.shadowBlur = Math.max(2, size * .04)
-          ctx.drawImage(image, -size / 2, -size / 2, size, size)
+          const sourceX = image.naturalWidth * item.cropLeft / 100
+          const sourceY = image.naturalHeight * item.cropTop / 100
+          const sourceWidth = Math.max(1, image.naturalWidth * (1 - (item.cropLeft + item.cropRight) / 100))
+          const sourceHeight = Math.max(1, image.naturalHeight * (1 - (item.cropTop + item.cropBottom) / 100))
+          ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, -size / 2, -size / 2, size, size)
           ctx.restore()
         })
         captionClips.filter((item) => exportTime >= item.start && exportTime < item.start + item.duration).forEach((item) => {
@@ -1065,7 +1569,7 @@ function App() {
         })
       }
       let timelineCursor = 0
-      for (const clip of orderedVideoClips) {
+      for (const clip of orderedMediaClips) {
         if (clip.start > timelineCursor) {
           const gapStart = performance.now()
           await new Promise<void>((resolve) => {
@@ -1078,31 +1582,53 @@ function App() {
             drawGap()
           })
         }
-        await loadVideoClip(clip)
-        video.playbackRate = speed
-        video.muted = true
-        await video.play()
-        await new Promise<void>((resolve) => {
-          const drawClip = () => {
-            const exportTime = Math.min(clip.start + clip.duration, clip.start + video.currentTime - clip.offset)
-            renderFrame(exportTime, clip)
-            setCurrentTime(exportTime)
-            if (video.ended || video.currentTime >= clip.offset + clip.duration - .02) resolve()
-            else requestAnimationFrame(drawClip)
-          }
-          drawClip()
-        })
-        video.pause()
+        if (clip.mediaType === 'image') {
+          const imageStartedAt = performance.now()
+          await new Promise<void>((resolve) => {
+            const drawImageClip = () => {
+              const exportTime = Math.min(clip.start + clip.duration, clip.start + (performance.now() - imageStartedAt) / 1000 * speed)
+              renderFrame(exportTime, clip)
+              setCurrentTime(exportTime)
+              if (exportTime >= clip.start + clip.duration - .02) resolve()
+              else requestAnimationFrame(drawImageClip)
+            }
+            drawImageClip()
+          })
+        } else {
+          await loadVideoClip(clip)
+          video.playbackRate = speed
+          video.muted = true
+          await video.play()
+          await new Promise<void>((resolve) => {
+            const drawClip = () => {
+              const exportTime = Math.min(clip.start + clip.duration, clip.start + video.currentTime - clip.offset)
+              renderFrame(exportTime, clip)
+              setCurrentTime(exportTime)
+              if (video.ended || video.currentTime >= clip.offset + clip.duration - .02) resolve()
+              else requestAnimationFrame(drawClip)
+            }
+            drawClip()
+          })
+          video.pause()
+        }
         timelineCursor = clip.start + clip.duration
       }
       exportTransitionVideo.pause()
       recorder.stop(); await finished
       const blob = new Blob(chunks, { type: 'video/webm' })
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob); link.download = `${fileName.replace(/\.[^.]+$/, '')}-lumacut.webm`; link.click()
-      URL.revokeObjectURL(link.href)
+      if (window.lumacut && destinationPath) {
+        const bytes = new Uint8Array(await blob.arrayBuffer())
+        await window.lumacut.saveExportFile(destinationPath, bytes)
+      } else {
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob); link.download = defaultExportName; link.click()
+        URL.revokeObjectURL(link.href)
+      }
+      reportExportProgress(exportTimelineDuration, true)
+      setExportProgress(100)
+      setExportEtaSeconds(0)
+      setExportFinished(true)
       setToast(t('exportSuccess'))
-      video.muted = isCurrentVideoDetached
     } catch { setToast(t('exportFailed')) }
     finally { setIsExporting(false) }
   }
@@ -1111,10 +1637,23 @@ function App() {
     <main className="app-shell" onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }} onDragLeave={() => setIsDragging(false)} onDrop={onDrop}>
       {isDragging && <div className="drop-overlay"><Upload size={34} /><strong>{t('dropTitle')}</strong><span>{t('dropDescription')}</span></div>}
       {toast && <div className="toast"><Check size={16} />{toast}</div>}
+      {exportDialogOpen && <div className="export-modal-backdrop">
+        <section className="export-modal" role="dialog" aria-modal="true" aria-label={t('exportSettings')}>
+          <header><div><Download size={19}/><span><strong>{t('exportSettings')}</strong><small>{t('exportSettingsHint')}</small></span></div><button disabled={isExporting} onClick={() => setExportDialogOpen(false)}><X size={17}/></button></header>
+          <div className="export-settings-grid">
+            <label>{t('encoder')}<select value={exportCodec} disabled={isExporting} onChange={(event) => setExportCodec(event.target.value as ExportCodec)}><option value="vp9">VP9 · {t('betterQuality')}</option><option value="vp8">VP8 · {t('fasterEncoding')}</option></select></label>
+            <label>{t('resolution')}<select value={exportResolution} disabled={isExporting} onChange={(event) => setExportResolution(event.target.value as ExportResolution)}>{exportResolutionOptions.map((option) => <option key={option.value} value={option.value}>{option.value === 'source' ? t('sourceResolution') : option.label}</option>)}</select></label>
+            <label>{t('frameRate')}<select value={exportFrameRate} disabled={isExporting} onChange={(event) => setExportFrameRate(Number(event.target.value))}>{exportFrameRates.map((rate) => <option key={rate} value={rate}>{rate} fps</option>)}</select></label>
+          </div>
+          <div className="export-location-section"><label>{t('saveLocation')}</label><button disabled={isExporting} onClick={() => void chooseExportPath()}><FolderOpen size={17}/><span title={exportPath}>{exportPath || t('chooseExportLocation')}</span><small>{t('browse')}</small></button></div>
+          {(isExporting || exportFinished) && <div className="export-progress-card"><div><strong>{exportFinished ? t('exportComplete') : t('encodingVideo')}</strong><b>{exportProgress}%</b></div><progress max="100" value={exportProgress}/><span>{exportFinished ? t('fileSavedAt', { path: exportPath || t('downloadsFolder') }) : exportEtaSeconds === null ? t('estimatingTime') : t('estimatedRemaining', { time: formatEta(exportEtaSeconds) })}</span></div>}
+          <footer><button className="export-cancel" disabled={isExporting} onClick={() => setExportDialogOpen(false)}>{exportFinished ? t('close') : t('cancel')}</button><button className="export-start" disabled={isExporting || exportFinished} onClick={() => void exportVideo()}>{isExporting ? <><span className="export-spinner"/>{t('encoding')} {exportProgress}%</> : exportFinished ? <><Check size={16}/>{t('completed')}</> : <><Download size={16}/>{t('startExport')}</>}</button></footer>
+        </section>
+      </div>}
       <header className="topbar">
         <div className="brand"><div className="brand-mark"><img src="./lumacut-icon.png" alt="" /></div><strong>LumaCut</strong></div>
-        <button className="project-name"><span className="save-dot" />{t('untitledProject')} <ChevronDown size={14} /></button>
-        <div className="top-actions"><button className="icon-button"><Undo2 size={17} /></button><button className="icon-button muted"><Redo2 size={17} /></button><button className="export-button" onClick={exportVideo} disabled={isExporting}><Download size={16} />{isExporting ? t('exporting') : t('export')}</button><div className="language-switcher"><button className="language-button" onClick={() => setLanguageMenuOpen((open) => !open)} aria-label={t('language')} aria-expanded={languageMenuOpen}><Globe2 size={15}/><span>{languageOptions.find((option) => option.code === language)?.short}</span><ChevronDown size={12}/></button>{languageMenuOpen && <div className="language-menu" role="menu">{languageOptions.map((option) => <button key={option.code} className={language === option.code ? 'active' : ''} onClick={() => {setLanguage(option.code);setLanguageMenuOpen(false)}} role="menuitem"><span>{option.label}</span>{language === option.code && <Check size={13}/>}</button>)}</div>}</div><button className="icon-button"><Menu size={18} /></button></div>
+        <div className="project-editor"><span className="save-dot"/><input value={projectName} maxLength={80} onChange={(event) => setProjectName(event.target.value)} onBlur={() => { if (!projectName.trim()) setProjectName(t('untitledProject')) }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur() }} aria-label={t('projectName')}/><button disabled={isSavingProject} onClick={() => void saveProject()} title={`${t('saveProject')} (Ctrl+S)`}>{isSavingProject ? <span className="project-save-spinner"/> : <Save size={15}/>}</button><button disabled={isSavingProject} onClick={() => void openProject()} title={`${t('openProject')} (Ctrl+O)`}><FolderOpen size={15}/></button></div>
+        <div className="top-actions"><button className="icon-button"><Undo2 size={17} /></button><button className="icon-button muted"><Redo2 size={17} /></button><button className="export-button" onClick={() => {setExportDialogOpen(true);setExportFinished(false);setExportProgress(0);setExportEtaSeconds(null)}} disabled={isExporting}><Download size={16} />{isExporting ? `${t('exporting')} ${exportProgress}%` : t('export')}</button><div className="language-switcher"><button className="language-button" onClick={() => setLanguageMenuOpen((open) => !open)} aria-label={t('language')} aria-expanded={languageMenuOpen}><Globe2 size={15}/><span>{languageOptions.find((option) => option.code === language)?.short}</span><ChevronDown size={12}/></button>{languageMenuOpen && <div className="language-menu" role="menu">{languageOptions.map((option) => <button key={option.code} className={language === option.code ? 'active' : ''} onClick={() => {setLanguage(option.code);setLanguageMenuOpen(false)}} role="menuitem"><span>{option.label}</span>{language === option.code && <Check size={13}/>}</button>)}</div>}</div><button className="icon-button"><Menu size={18} /></button></div>
       </header>
 
       <section className="workspace">
@@ -1123,10 +1662,10 @@ function App() {
           <div className="panel-heading"><div><span>{t('myLibrary')}</span><h2>{t(toolItems.find((item) => item.id === activeTool)?.labelKey ?? 'media')}</h2></div><button className="icon-button"><X size={16} /></button></div>
           {activeTool === 'media' && <>
             <button className="import-button" onClick={() => fileInput.current?.click()}><Plus size={17} />{t('importMedia')}</button>
-            <input ref={fileInput} type="file" accept="video/*" multiple onChange={(event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []); event.currentTarget.value = ''; void importFiles(files) }} hidden />
+            <input ref={fileInput} type="file" accept="video/*,image/jpeg,image/png,image/webp,image/bmp" multiple onChange={(event: ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []); event.currentTarget.value = ''; void importFiles(files) }} hidden />
             <p className="section-label">{t('inProject')}</p>
-            <div className="media-list">{videoAssets.length ? videoAssets.map((asset, index) => <button key={asset.id} className="media-card" onClick={() => { const clip = clips.find((item) => item.sourceUrl === asset.url); if (clip) { setSelectedClip(clip.id); seek(clip.start) } }}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><b>{index + 1}</b><CirclePlay size={24}/></div><div className="media-meta"><strong>{asset.name}</strong><span>{formatTime(asset.duration).slice(0, 5)} · {t('yourFile')}</span></div></button>) : <button className="media-card" onClick={() => fileInput.current?.click()}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></div><div className="media-meta"><strong>{fileName}</strong><span>{formatTime(duration).slice(0, 5)} · {t('sample')}</span></div></button>}</div>
-            <button className={`extract-audio-button ${isSelectedVideoDetached ? 'done' : ''}`} onClick={detachAudioFromVideo} disabled={!selectedVideoSource || isSelectedVideoDetached}><AudioLines size={17}/>{isSelectedVideoDetached ? t('detachedDone') : t('detachAudio')}</button>
+            <div className="media-list">{videoAssets.length ? videoAssets.map((asset, index) => <button key={asset.id} className="media-card" onClick={() => { const clip = clips.find((item) => item.sourceUrl === asset.url); if (clip) { setSelectedClip(clip.id); seek(clip.start) } }}><div className={`media-thumb ${asset.mediaType === 'image' ? 'image-thumb' : ''}`}>{asset.mediaType === 'image' ? <img src={asset.url} alt=""/> : <><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></>}<b>{index + 1}</b></div><div className="media-meta"><strong>{asset.name}</strong><span>{asset.mediaType === 'image' ? t('stillImage') : formatTime(asset.duration).slice(0, 5)} · {t('yourFile')}</span></div></button>) : <button className="media-card" onClick={() => fileInput.current?.click()}><div className="media-thumb"><div className="thumb-sun"/><div className="thumb-mountain"/><CirclePlay size={24}/></div><div className="media-meta"><strong>{fileName}</strong><span>{formatTime(duration).slice(0, 5)} · {t('sample')}</span></div></button>}</div>
+            <button className={`extract-audio-button ${isSelectedVideoDetached ? 'done' : ''}`} onClick={detachAudioFromVideo} disabled={!selectedVideoSource || activeClip?.mediaType === 'image' || isSelectedVideoDetached}><AudioLines size={17}/>{isSelectedVideoDetached ? t('detachedDone') : t('detachAudio')}</button>
             <div className="media-card empty"><FolderOpen size={22} /><span>{t('dropVideo')}</span></div>
           </>}
           {activeTool === 'text' && <div className="text-tools">
@@ -1152,8 +1691,14 @@ function App() {
             <p className="section-label">{t('captionsInProject')}</p>
             <div className="caption-list">{captionClips.length ? captionClips.map((item) => <button key={item.id} className={selectedCaptionClip === item.id ? 'active' : ''} onClick={() => {setSelectedCaptionClip(item.id);setSelectedStickerClip(0);setSelectedTextClip(0);setSelectedClip(0);setSelectedAudioClip(0)}}><span>{item.text}</span><small>{formatTime(item.start).slice(0,5)} · {item.duration.toFixed(1)}s</small></button>) : <div className="caption-empty">{t('noCaptions')}</div>}</div>
           </div>}
-          {activeTool === 'effects' && <div className="effect-grid">{(['film','lightLeak','blur','grain','VHS','soft'] as const).map((name, i) => <button key={name} style={{'--hue': `${195 + i * 22}`} as React.CSSProperties}><WandSparkles size={18}/><span>{name === 'VHS' ? name : t(name)}</span></button>)}</div>}
+          {activeTool === 'effects' && <div className="video-effect-library">
+            <p className="section-label">{t('videoEffects')}</p>
+            <div className="effect-grid">{videoEffectOptions.map((option, index) => <button key={option.value} className={effectTarget?.videoEffect === option.value ? 'active' : ''} style={{'--hue': `${180 + index * 24}`} as CSSProperties} onClick={() => applyVideoEffect(option.value)}><i className={`effect-thumb effect-${option.value}`}><WandSparkles size={18}/></i><span>{t(option.labelKey)}</span></button>)}</div>
+            {effectTarget ? <label className="effect-intensity">{t('effectIntensity')} <span>{effectTarget.effectIntensity}%</span><input type="range" min="0" max="100" step="1" value={effectTarget.effectIntensity} onChange={(event) => updateVideoEffectIntensity(Number(event.target.value))}/></label> : <div className="caption-empty effect-empty">{t('selectVideoForEffect')}</div>}
+          </div>}
           {activeTool === 'stickers' && <div className="sticker-library">
+            <button className="import-button" onClick={() => gifInput.current?.click()}><Upload size={16}/>{t('importGif')}</button>
+            <input ref={gifInput} type="file" accept=".gif,image/gif" onChange={(event) => { const file = event.target.files?.[0]; event.currentTarget.value = ''; importGif(file) }} hidden/>
             <input value={stickerSearch} onChange={(event) => setStickerSearch(event.target.value)} placeholder={t('searchStickers')}/>
             <div className="sticker-category-tabs"><button className={stickerCategory === 'all' ? 'active' : ''} onClick={() => setStickerCategory('all')}>{t('allAssets')}</button><button className={stickerCategory === 'sticker' ? 'active' : ''} onClick={() => setStickerCategory('sticker')}>{t('stillStickers')}</button><button className={stickerCategory === 'gif' ? 'active' : ''} onClick={() => setStickerCategory('gif')}>{t('gifMemes')}</button></div>
             <div className="sticker-grid">{filteredStickerAssets.map((asset) => <button key={asset.src} className={asset.kind === 'gif' ? 'gif-asset' : ''} onClick={() => addSticker(asset)} title={asset.name}><img src={asset.src} alt=""/>{asset.kind === 'gif' && <b>GIF</b>}<span>{asset.name}</span></button>)}</div>
@@ -1164,23 +1709,32 @@ function App() {
         </aside>
 
         <section className="editor-stage"><div className="preview-wrap">
-          <div className="preview-canvas">
-            {currentTransition.active && previousVideoClip && <div className="preview-media-layer transition-outgoing" style={{filter, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x}%, ${currentTransition.previous.y}%) scale(${currentTransition.previous.scale})`}}>{previousVideoClip.sourceUrl ? <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
-            <div className="preview-media-layer" style={{filter, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x}%, ${videoMotion.y}%) scale(${videoMotion.scale})`}}>{previewVideoUrl ? <video ref={videoRef} src={previewVideoUrl} muted={isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
+          <div className="canvas-toolbar"><span>{t('canvasRatio')}</span><div className="canvas-presets">{canvasPresets.map((preset) => <button key={preset.value} className={canvasPreset === preset.value ? 'active' : ''} onClick={() => applyCanvasPreset(preset.value)}>{preset.value}</button>)}<button className={canvasPreset === 'custom' ? 'active' : ''} onClick={() => setCanvasPreset('custom')}>{t('custom')}</button></div>{canvasPreset === 'custom' && <div className="custom-canvas-size"><input type="number" min="64" max="8192" value={canvasWidth} onChange={(event) => commitCanvasDimension('width', Number(event.target.value))} aria-label={t('canvasWidth')}/><span>×</span><input type="number" min="64" max="8192" value={canvasHeight} onChange={(event) => commitCanvasDimension('height', Number(event.target.value))} aria-label={t('canvasHeight')}/></div>}</div>
+          <div className="preview-canvas" style={{aspectRatio: `${canvasWidth}/${canvasHeight}`, '--canvas-ratio': canvasWidth / canvasHeight} as CSSProperties}>
+            {currentTransition.active && previousVideoClip && <div className="preview-media-layer transition-outgoing" style={{filter: outgoingVideoFilter, clipPath: outgoingCrop, opacity: currentTransition.previous.opacity * videoOpacity / 100, transform: `translate(${currentTransition.previous.x + previousVideoClip.positionX}%, ${currentTransition.previous.y + previousVideoClip.positionY}%) scale(${currentTransition.previous.scale * previousVideoClip.scale / 100})`}}>{previousVideoClip.sourceUrl ? previousVideoClip.mediaType === 'image' ? <img src={previousVideoClip.sourceUrl} alt=""/> : <video ref={transitionVideoRef} src={previousVideoClip.sourceUrl} muted playsInline/> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>}
+            <div className={`preview-media-layer ${selectedClip && previewMediaClip?.id === selectedClip ? 'selected-media' : ''}`} style={{filter: previewVideoFilter, clipPath: previewCrop, opacity: videoMotion.opacity * videoOpacity / 100, transform: `translate(${videoMotion.x + (previewMediaClip?.positionX ?? 0)}%, ${videoMotion.y + (previewMediaClip?.positionY ?? 0)}%) scale(${videoMotion.scale * (previewMediaClip?.scale ?? 100) / 100})`}} onPointerDown={(event) => previewMediaClip && beginMediaPosition(event, previewMediaClip)} onPointerMove={moveMediaPosition} onPointerUp={endMediaPosition} onPointerCancel={endMediaPosition}>{previewVideoUrl ? previewMediaType === 'image' ? <img src={previewVideoUrl} alt={previewMediaClip?.label ?? ''}/> : <video ref={videoRef} src={previewVideoUrl} muted={isCurrentVideoDetached} onLoadedMetadata={(event) => { const clip = currentVideoClip; if (!clip) return; event.currentTarget.currentTime = Math.max(0, clip.offset + currentTime - clip.start); if (isPlaying) void event.currentTarget.play().catch(() => undefined) }} onTimeUpdate={(event) => { const clip = currentVideoClip; if (!clip || event.currentTarget.getAttribute('src') !== clip.sourceUrl) return; const mapped = clip.start + event.currentTarget.currentTime - clip.offset; if (mapped >= clip.start + clip.duration - .03) { const next = [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0]; if (next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); if (next.sourceUrl === clip.sourceUrl) event.currentTarget.currentTime = next.offset } else { event.currentTarget.pause(); setIsPlaying(false); setCurrentTime(clip.start + clip.duration) } } else setCurrentTime(Math.max(clip.start, mapped)) }} onPlay={() => setIsPlaying(true)} onEnded={() => { const clip = currentVideoClip; const next = clip ? [...clips].filter((item) => item.trackId === clip.trackId && item.start >= clip.start + clip.duration - .1).sort((a, b) => a.start - b.start)[0] : undefined; if (clip && next && Math.abs(next.start - (clip.start + clip.duration)) < .11) { setCurrentTime(next.start); setIsPlaying(true) } else setIsPlaying(false) }} /> : <div className="demo-scene"><div className="demo-sky"/><div className="demo-sun"/><div className="demo-ridge ridge-one"/><div className="demo-ridge ridge-two"/><span className="demo-tag">TRAVEL FILM</span></div>}</div>
+            {previewEffectClip && previewEffectClip.videoEffect !== 'none' && <div className={`video-effect-overlay effect-${previewEffectClip.videoEffect}`} style={{'--effect-intensity': previewEffectClip.effectIntensity / 100} as CSSProperties}/>}
             {textClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); const isTyping = item.animation === 'typewriter' && currentTime < item.start + Math.min(item.animationDuration, item.duration); return <div key={item.id} className={`video-text-layer ${selectedTextClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, fontSize: item.fontSize, fontFamily: item.fontFamily, color: item.color, opacity: item.opacity / 100 * motion.opacity, fontWeight: item.bold ? 700 : 400, transform: `translate(-50%, -50%) scale(${motion.scale})`, ...textEffectStyle(item)}} onPointerDown={(e) => beginTextPosition(e, item)} onPointerMove={moveTextPosition} onPointerUp={endTextPosition} onPointerCancel={endTextPosition}><span className={isTyping ? 'typewriter-active' : ''}>{animatedText(item.text, item.animation, item.start, item.duration, item.animationDuration, currentTime)}</span>{selectedTextClip === item.id && <><i className="text-handle nw"/><i className="text-handle ne"/><i className="text-handle sw"/><i className="text-handle se"/></>}</div>})}
-            {stickerClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); return <button key={item.id} className={`video-sticker-layer ${selectedStickerClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, width: `${item.size}%`, opacity: item.opacity / 100 * motion.opacity, transform: `translate(-50%, -50%) rotate(${item.rotation}deg) scale(${motion.scale})`}} onPointerDown={(event) => beginStickerPosition(event, item)} onPointerMove={moveStickerPosition} onPointerUp={endStickerPosition} onPointerCancel={endStickerPosition}><img src={item.src} alt={item.name}/></button>})}
+            {stickerClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => { const motion = animationFrame(item.animation, item.start, item.duration, item.animationDuration, currentTime); return <button key={item.id} className={`video-sticker-layer ${selectedStickerClip === item.id ? 'selected' : ''}`} style={{left: `calc(${item.x}% + ${motion.x}%)`, top: `calc(${item.y}% + ${motion.y}%)`, width: `${item.size}%`, opacity: item.opacity / 100 * motion.opacity, transform: `translate(-50%, -50%) rotate(${item.rotation}deg) scale(${motion.scale})`}} onPointerDown={(event) => beginStickerPosition(event, item)} onPointerMove={moveStickerPosition} onPointerUp={endStickerPosition} onPointerCancel={endStickerPosition}><img src={item.src} alt={item.name} style={{clipPath: `inset(${item.cropTop}% ${item.cropRight}% ${item.cropBottom}% ${item.cropLeft}%)`}}/></button>})}
             {captionClips.filter((item) => currentTime >= item.start && currentTime < item.start + item.duration).map((item) => <button key={item.id} className={`video-caption-layer ${selectedCaptionClip === item.id ? 'selected' : ''}`} onClick={(event) => {event.stopPropagation();setSelectedCaptionClip(item.id);setSelectedStickerClip(0);setSelectedTextClip(0);setSelectedClip(0);setSelectedAudioClip(0);setActiveTool('captions')}}>{item.text}</button>)}
           </div>
           <div className="preview-controls"><span className="timecode">{formatTime(currentTime)} <i>/</i> {formatTime(projectDuration)}</span><button onClick={() => seek(currentTime - 5)}><RotateCcw size={17}/></button><button className="play-button" onClick={() => void togglePlayback()}>{isPlaying ? <Pause size={18} fill="currentColor"/> : <Play size={18} fill="currentColor"/>}</button><button onClick={() => seek(Math.min(projectDuration, currentTime + 5))}><RotateCcw className="forward" size={17}/></button><div className="preview-right"><button><Volume2 size={17}/></button><button><Settings2 size={17}/></button><button className="fit-button">{t('fit')} <ChevronDown size={13}/></button></div></div>
         </div></section>
 
         <aside className="property-panel">
-          {activeStickerClip ? <>
+          {activeAudioClip ? <>
+            <div className="properties-tabs"><button className="active">{t('audio')}</button></div>
+            <div className="property-section audio-inspector"><h3><Volume2 size={16}/>{t('audioAdjust')}</h3><label>{t('clipVolume')} <span>{activeAudioClip.volume}%</span><input type="range" min="0" max="200" step="1" value={activeAudioClip.volume} onChange={(event) => updateAudioClip({volume: Number(event.target.value)})}/></label><div className="audio-volume-scale"><span>0%</span><span>100%</span><span>200%</span></div></div>
+            <div className="property-section audio-fade-editor"><h3><AudioLines size={16}/>{t('audioFade')}</h3><label>{t('fadeInAudio')} <span>{Math.min(activeAudioClip.fadeIn, activeAudioClip.duration).toFixed(1)}s</span><input type="range" min="0" max={Math.max(.1, activeAudioClip.duration)} step="0.1" value={Math.min(activeAudioClip.fadeIn, activeAudioClip.duration)} onChange={(event) => updateAudioClip({fadeIn: Number(event.target.value)})}/></label><label>{t('fadeOutAudio')} <span>{Math.min(activeAudioClip.fadeOut, activeAudioClip.duration).toFixed(1)}s</span><input type="range" min="0" max={Math.max(.1, activeAudioClip.duration)} step="0.1" value={Math.min(activeAudioClip.fadeOut, activeAudioClip.duration)} onChange={(event) => updateAudioClip({fadeOut: Number(event.target.value)})}/></label><div className="audio-fade-diagram"><i style={{width: `${Math.min(50, activeAudioClip.fadeIn / Math.max(.1, activeAudioClip.duration) * 100)}%`}}/><b/><em style={{width: `${Math.min(50, activeAudioClip.fadeOut / Math.max(.1, activeAudioClip.duration) * 100)}%`}}/></div><p className="animation-hint">{t('audioFadeHint')}</p></div>
+            <div className="property-section text-timing"><h3><Gauge size={16}/>{t('displayTime')}</h3><label>{t('start')}<input type="number" min="0" step="0.1" value={activeAudioClip.start} onChange={(event) => updateAudioClip({start: Math.max(0, Number(event.target.value))})}/><span>{t('seconds')}</span></label><label>{t('duration')}<input type="number" min="0.2" max={activeAudioClip.sourceDuration - activeAudioClip.offset} step="0.1" value={activeAudioClip.duration} onChange={(event) => updateAudioClip({duration: Math.max(.2, Math.min(activeAudioClip.sourceDuration - activeAudioClip.offset, Number(event.target.value)))})}/><span>{t('seconds')}</span></label></div>
+            <button className="delete-text-button" onClick={deleteClip}><Trash2 size={14}/>{t('deleteAudio')}</button>
+          </> : activeStickerClip ? <>
             <div className="properties-tabs"><button className={stickerInspectorTab === 'sticker' ? 'active' : ''} onClick={() => setStickerInspectorTab('sticker')}>{t('stickers')}</button><button className={stickerInspectorTab === 'animation' ? 'active' : ''} onClick={() => setStickerInspectorTab('animation')}>{t('animation')}</button></div>
             {stickerInspectorTab === 'animation' ? renderAnimationEditor(activeStickerClip, updateSticker, activeStickerClip.start, activeStickerClip.duration) : <>
             <div className="property-section sticker-inspector"><h3><Sticker size={16}/>{activeStickerClip.name}</h3><div className="sticker-inspector-preview"><img src={activeStickerClip.src} alt={activeStickerClip.name}/></div></div>
             <div className="property-section"><h3><SlidersHorizontal size={16}/>{t('format')}</h3><label>{t('size')} <span>{activeStickerClip.size}%</span><input type="range" min="8" max="60" value={activeStickerClip.size} onChange={(event) => updateSticker({size: Number(event.target.value)})}/></label><label>{t('rotate')} <span>{activeStickerClip.rotation}°</span><input type="range" min="-180" max="180" value={activeStickerClip.rotation} onChange={(event) => updateSticker({rotation: Number(event.target.value)})}/></label><label>{t('opacity')} <span>{activeStickerClip.opacity}%</span><input type="range" min="10" max="100" value={activeStickerClip.opacity} onChange={(event) => updateSticker({opacity: Number(event.target.value)})}/></label></div>
             <div className="property-section"><h3><MousePointer2 size={16}/>{t('position')}</h3><label>{t('horizontal')} <span>{Math.round(activeStickerClip.x)}%</span><input type="range" min="0" max="100" value={activeStickerClip.x} onChange={(event) => updateSticker({x: Number(event.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeStickerClip.y)}%</span><input type="range" min="0" max="100" value={activeStickerClip.y} onChange={(event) => updateSticker({y: Number(event.target.value)})}/></label></div>
+            <div className="property-section crop-editor"><h3><Crop size={16}/>{t('crop')}</h3>{([['cropLeft', 'left'], ['cropRight', 'right'], ['cropTop', 'top'], ['cropBottom', 'bottom']] as const).map(([edge, label]) => <label key={edge}>{t(label)} <span>{activeStickerClip[edge]}%</span><input type="range" min="0" max="45" value={activeStickerClip[edge]} onChange={(event) => updateStickerCrop(edge, Number(event.target.value))}/></label>)}<button className="inline-reset" onClick={() => updateSticker({cropLeft: 0, cropRight: 0, cropTop: 0, cropBottom: 0})}>{t('resetCrop')}</button></div>
             <div className="property-section text-timing"><h3><Gauge size={16}/>{t('displayTime')}</h3><label>{t('start')}<input type="number" min="0" step="0.1" value={activeStickerClip.start} onChange={(event) => updateSticker({start: Math.max(0, Number(event.target.value))})}/><span>{t('seconds')}</span></label><label>{t('duration')}<input type="number" min="0.2" step="0.1" value={activeStickerClip.duration} onChange={(event) => updateSticker({duration: Math.max(.2, Number(event.target.value))})}/><span>{t('seconds')}</span></label></div>
             </>}
             <button className="delete-text-button" onClick={deleteClip}><Trash2 size={14}/>{t('deleteSticker')}</button>
@@ -1207,6 +1761,7 @@ function App() {
             <div className="properties-tabs video-tabs"><button className={videoInspectorTab === 'video' ? 'active' : ''} onClick={() => setVideoInspectorTab('video')}>{t('video')}</button><button className={videoInspectorTab === 'animation' ? 'active' : ''} onClick={() => setVideoInspectorTab('animation')}>{t('animation')}</button><button className={videoInspectorTab === 'transition' ? 'active' : ''} onClick={() => setVideoInspectorTab('transition')}>{t('transition')}</button><button className={videoInspectorTab === 'adjust' ? 'active' : ''} onClick={() => setVideoInspectorTab('adjust')}>{t('adjust')}</button></div>
             {videoInspectorTab === 'video' ? <>
             <div className="property-section"><h3><SlidersHorizontal size={16}/>{t('basic')}</h3><label>{t('opacity')} <span>{videoOpacity}%</span><input type="range" min="0" max="100" value={videoOpacity} onChange={(event) => setVideoOpacity(Number(event.target.value))}/></label><div className="toggle-row"><span>{t('stabilize')}</span><button className="toggle"><i/></button></div></div>
+            {activeClip && <><div className="property-section media-transform-editor"><h3><Crop size={16}/>{t('cropAndResize')}</h3><label>{t('scale')} <span>{Math.round(activeClip.scale)}%</span><input type="range" min="10" max="500" step="1" value={activeClip.scale} onChange={(event) => updateVideoClip({scale: Number(event.target.value)})}/></label><label>{t('horizontal')} <span>{Math.round(activeClip.positionX)}%</span><input type="range" min="-100" max="100" value={activeClip.positionX} onChange={(event) => updateVideoClip({positionX: Number(event.target.value)})}/></label><label>{t('vertical')} <span>{Math.round(activeClip.positionY)}%</span><input type="range" min="-100" max="100" value={activeClip.positionY} onChange={(event) => updateVideoClip({positionY: Number(event.target.value)})}/></label><p className="crop-hint">{t('dragMediaHint')}</p></div><div className="property-section crop-editor"><h3><Crop size={16}/>{t('cropEdges')}</h3>{([['cropLeft', 'left'], ['cropRight', 'right'], ['cropTop', 'top'], ['cropBottom', 'bottom']] as const).map(([edge, label]) => <label key={edge}>{t(label)} <span>{activeClip[edge]}%</span><input type="range" min="0" max="45" value={activeClip[edge]} onChange={(event) => updateMediaCrop(edge, Number(event.target.value))}/></label>)}<button className="inline-reset" onClick={resetMediaTransform}>{t('resetTransform')}</button></div></>}
             <div className="property-section"><h3><Gauge size={16}/>{t('speed')} <span>{speed.toFixed(1)}x</span></h3><input type="range" min="0.5" max="2" step="0.1" value={speed} onChange={(e) => setSpeed(Number(e.target.value))}/><div className="range-labels"><span>0.5x</span><span>1x</span><span>2x</span></div></div>
             <div className="property-section"><h3><Volume2 size={16}/>{t('volume')} <span>{volume}%</span></h3><input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(Number(e.target.value))}/></div>
             </> : videoInspectorTab === 'animation' ? activeClip ? renderAnimationEditor(activeClip, updateVideoClip, activeClip.start, activeClip.duration) : <div className="caption-empty inspector-empty">{t('selectClipForAnimation')}</div> : videoInspectorTab === 'transition' ? activeClip ? renderTransitionEditor(activeClip) : <div className="caption-empty inspector-empty">{t('selectClipForTransition')}</div> : <>
@@ -1218,7 +1773,7 @@ function App() {
       </section>
 
       <section className="timeline-panel">
-        <div className="timeline-toolbar"><div><button className="tool-active"><MousePointer2 size={16}/></button><button onClick={splitClip} title={t('splitClip')}><Scissors size={16}/></button><button onClick={deleteClip} title={t('deleteItem')}><Trash2 size={16}/></button><span className="divider"/><button onClick={() => addText()} title={t('addText')}><TextCursorInput size={16}/></button><button onClick={() => setActiveTool('stickers')} title={t('openStickers')}><Sticker size={16}/></button><button><Crop size={16}/></button><span className="divider"/><div className="optional-track-buttons">{optionalTrackItems.map(({type, labelKey, icon: Icon}) => <button key={type} onClick={() => addTimelineTrack(type)} title={t('addTrack', {track: t(labelKey)})} aria-label={t('addTrack', {track: t(labelKey)})}><Icon size={15}/><Plus className="track-plus" size={9}/></button>)}</div></div><div className="timeline-zoom"><button onClick={() => applyTimelineZoom(zoom / 1.25)} title={t('zoomOut')}><ZoomOut size={15}/></button><div className="timeline-zoom-scrubber" title={t('zoomHelp')} onPointerDown={beginZoomDrag} onPointerMove={moveZoomDrag} onPointerUp={endZoomDrag} onPointerCancel={endZoomDrag}><span/><i/></div><label><input className="zoom-percent-input" type="number" min="0.01" step="1" value={zoomPercentInput} onChange={(event) => {const value = event.target.value; setZoomPercentInput(value); const parsed = Number(value); if (value && Number.isFinite(parsed) && parsed > 0) setZoom(Math.min(10000, Math.max(.0001, parsed / 100)))}} onBlur={commitZoomPercent} onKeyDown={(event) => {if (event.key === 'Enter') event.currentTarget.blur()}} aria-label={t('zoomPercent')}/><span>%</span></label><button onClick={() => applyTimelineZoom(zoom * 1.25)} title={t('zoomIn')}><ZoomIn size={15}/></button></div></div>
+        <div className="timeline-toolbar"><div><button className="tool-active"><MousePointer2 size={16}/></button><button onClick={splitClip} title={t('splitClip')}><Scissors size={16}/></button><button onClick={deleteClip} title={t('deleteItem')}><Trash2 size={16}/></button><span className="divider"/><button onClick={() => addText()} title={t('addText')}><TextCursorInput size={16}/></button><button onClick={() => setActiveTool('stickers')} title={t('openStickers')}><Sticker size={16}/></button><button onClick={() => { const target = activeClip ?? currentVideoClip; if (target) { setSelectedClip(target.id); setSelectedAudioClip(0); setSelectedTextClip(0); setSelectedStickerClip(0); setSelectedCaptionClip(0); setVideoInspectorTab('video') } else setToast(t('selectMediaForCrop')) }} title={t('cropAndResize')}><Crop size={16}/></button><span className="divider"/><div className="optional-track-buttons">{optionalTrackItems.map(({type, labelKey, icon: Icon}) => <button key={type} onClick={() => addTimelineTrack(type)} title={t('addTrack', {track: t(labelKey)})} aria-label={t('addTrack', {track: t(labelKey)})}><Icon size={15}/><Plus className="track-plus" size={9}/></button>)}</div></div><div className="timeline-zoom"><button onClick={() => applyTimelineZoom(zoom / 1.25)} title={t('zoomOut')}><ZoomOut size={15}/></button><div className="timeline-zoom-scrubber" title={t('zoomHelp')} onPointerDown={beginZoomDrag} onPointerMove={moveZoomDrag} onPointerUp={endZoomDrag} onPointerCancel={endZoomDrag}><span/><i/></div><label><input className="zoom-percent-input" type="number" min="0.01" step="1" value={zoomPercentInput} onChange={(event) => {const value = event.target.value; setZoomPercentInput(value); const parsed = Number(value); if (value && Number.isFinite(parsed) && parsed > 0) setZoom(Math.min(10000, Math.max(.0001, parsed / 100)))}} onBlur={commitZoomPercent} onKeyDown={(event) => {if (event.key === 'Enter') event.currentTarget.blur()}} aria-label={t('zoomPercent')}/><span>%</span></label><button onClick={() => applyTimelineZoom(zoom * 1.25)} title={t('zoomIn')}><ZoomIn size={15}/></button></div></div>
         <div className="timeline-body"><div className="track-heads" ref={trackHeadsRef} onScroll={() => syncTimelineScroll('heads')}><div className="ruler-spacer"/>{tracks.map((track) => { const Icon = track.type === 'video' ? Film : track.type === 'text' ? TextCursorInput : track.type === 'sticker' ? Sticker : track.type === 'caption' ? Captions : Music2; const canDelete = track.type === 'text' || track.type === 'sticker' || track.type === 'caption' || tracks.filter((item) => item.type === track.type).length > 1; const label = trackDisplayLabel(track); return <div key={track.id} className="track-head-row"><Icon size={15}/><span>{label}</span><div className="track-actions"><button onClick={() => addTimelineTrack(track.type)} title={t('addTrack', {track: label})}><Plus size={13}/></button><button disabled={!canDelete} onClick={() => deleteTimelineTrack(track)} title={t('deleteTrack', {track: label})}><Trash2 size={12}/></button></div></div>})}</div>
           <div className="timeline-scroll" ref={timelineScrollRef} onScroll={() => syncTimelineScroll('timeline')}><div className="timeline-content" style={{ width: timelineWidth, height: 25 + tracks.length * 64 }} onClick={(e) => { const rect = e.currentTarget.getBoundingClientRect(); seek((e.clientX - rect.left) / pxPerSecond) }}>
             <div className="ruler">{Array.from({length: rulerTickCount}, (_, i) => {const time = i * rulerStep; return <span key={i} style={{left: time * pxPerSecond}}>{rulerStep < .1 ? `${time.toFixed(3)}s` : rulerStep < 1 ? `${time.toFixed(1)}s` : formatTime(time).slice(0,5)}</span>})}</div><div className="playhead" style={{left: currentTime * pxPerSecond}}><i/><b/></div>
