@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      ffmpeg-static-electron:
+        specifier: 2.0.3
+        version: 2.0.3
       lucide-react:
         specifier: ^1.40.0
         version: 1.40.0(react@19.2.8)
@@ -783,6 +786,9 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  ffmpeg-static-electron@2.0.3:
+    resolution: {integrity: sha512-VGix5A0LTM6RHgwkFvL5x+c5m4WfacBFeuw7Twq1gVrYRgLHOVpawOmydmWbrRz58LVO7ao00P2EDjb7ZmE5rg==}
 
   filelist@1.0.6:
     resolution: {integrity: sha512-5giy2PkLYY1cP39p17Ech+2xlpTRL9HLspOfEgm0L6CwBXBTgsK5ou0JtzYuepxkaQ/tvhCFIJ5uXo0OrM2DxA==}
@@ -2356,6 +2362,8 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
       picomatch: 4.0.7
+
+  ffmpeg-static-electron@2.0.3: {}
 
   filelist@1.0.6:
     dependencies:

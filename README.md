@@ -6,7 +6,7 @@
 
 LumaCut is a free, open-source desktop video editor with a straightforward workflow inspired by modern editing applications such as CapCut. It is built with Electron, React, and TypeScript and is distributed under the MIT License.
 
-Current version: **1.32.0**
+Current version: **1.33.0**
 
 ## Features
 
@@ -35,7 +35,7 @@ Current version: **1.32.0**
 - Adjust playback speed, volume, opacity, brightness, contrast, and saturation.
 - Zoom the timeline by dragging the zoom control, clicking the magnifier buttons, or entering an exact percentage.
 - Use the interface in English, Thai, Russian, Chinese, Japanese, Spanish, Hindi, or French.
-- Export video using VP9 or VP8, from source resolution up to 4K, at 24–60 fps, to a chosen location with progress percentage and estimated time remaining.
+- Export MP4 using H.264/AAC or WebM using VP9/VP8, from source resolution up to 4K, at 24–60 fps, to a chosen location with progress percentage and estimated time remaining.
 
 ## System Requirements
 
@@ -57,14 +57,14 @@ LumaCut does not require an account. Editing and project processing take place l
 
 Open the repository's [Releases page](https://github.com/natblockman/LumaCut/releases), select the latest release, and download the file for your operating system:
 
-- Windows: `LumaCut-Setup-1.32.0.exe`
-- Linux: `LumaCut-1.32.0.AppImage`
+- Windows: `LumaCut-Setup-1.33.0.exe`
+- Linux: `LumaCut-1.33.0.AppImage`
 
 Installers are not stored in the source tree because of their size. They are published as assets attached to GitHub Releases.
 
 ## Install on Windows
 
-1. Download `LumaCut-Setup-1.32.0.exe` from the Releases page.
+1. Download `LumaCut-Setup-1.33.0.exe` from the Releases page.
 2. Double-click the downloaded file.
 3. If Windows SmartScreen displays a warning, confirm that the file came from this repository, then select **More info** and **Run anyway**.
 4. Choose an installation folder.
@@ -79,24 +79,24 @@ Open **Settings → Apps → Installed apps → LumaCut → Uninstall**, or use 
 
 ## Run on Linux
 
-1. Download `LumaCut-1.32.0.AppImage` from the Releases page.
+1. Download `LumaCut-1.33.0.AppImage` from the Releases page.
 2. Open a terminal in the folder containing the file.
 3. Make the file executable:
 
 ```bash
-chmod +x LumaCut-1.32.0.AppImage
+chmod +x LumaCut-1.33.0.AppImage
 ```
 
 4. Start the application:
 
 ```bash
-./LumaCut-1.32.0.AppImage
+./LumaCut-1.33.0.AppImage
 ```
 
 If the AppImage cannot start because FUSE is unavailable, try running it in temporary extraction mode:
 
 ```bash
-./LumaCut-1.32.0.AppImage --appimage-extract-and-run
+./LumaCut-1.33.0.AppImage --appimage-extract-and-run
 ```
 
 ## Your First Edit
@@ -124,7 +124,7 @@ If the AppImage cannot start because FUSE is unavailable, try running it in temp
 
 ## Export Settings and Progress
 
-1. Choose **VP9** for better quality and compression efficiency, or **VP8** for faster encoding.
+1. Choose **H.264 · MP4** for a widely compatible MP4 file. Choose **VP9** for better WebM compression efficiency, or **VP8** for faster WebM encoding.
 2. Choose the source resolution or 480p, 720p, 1080p, 1440p, or 2160p (4K).
 3. Choose 24, 25, 30, 50, or 60 fps.
 4. Select **Browse** to choose the filename and location using the operating system's save dialog.
@@ -157,7 +157,7 @@ Videos, audio files, and GIFs imported from your computer refer to their origina
 4. Use the **Style** tab to change the font, size, opacity, position, and display time.
 5. Use the **Effects** tab to select None, Outline, Shadow, Glow, Neon, or Background.
 6. Adjust effect color, outline color and thickness, letter spacing, or background opacity when available.
-7. Text effects appear in both the preview and exported WebM video.
+7. Text effects appear in both the preview and exported MP4 or WebM video.
 
 ## Video Effects
 
@@ -165,7 +165,7 @@ Videos, audio files, and GIFs imported from your computer refer to their origina
 2. Open **Effects** in the left panel.
 3. Select Film, Light Leak, Blur, Grain, VHS, or Soft. Select **None** to remove the effect.
 4. Adjust **Effect intensity** from 0–100%.
-5. Effects are stored independently for each clip and appear in both preview and exported WebM video.
+5. Effects are stored independently for each clip and appear in both preview and exported MP4 or WebM video.
 
 ## GIFs
 
@@ -203,7 +203,7 @@ An active transition displays a diamond at the cut on the timeline. If the clips
 
 - Supported video and audio import formats depend on the codecs available to Electron/Chromium on the operating system.
 - Captions can be imported from `.srt` files.
-- Video is exported as `.webm` using VP9 or VP8 encoding.
+- Video can be exported as `.mp4` using H.264 video and AAC audio, or as `.webm` using VP9 or VP8 encoding.
 - Export time depends on project duration, output resolution, and computer performance.
 
 ## Current Limitations
@@ -256,12 +256,14 @@ release/             Locally generated packages (excluded from Git)
 
 ## Contributing
 
-Issues and pull requests are welcome for bug fixes, codecs and MP4 support, project workflow improvements, Undo/Redo, and other features.
+Issues and pull requests are welcome for bug fixes, codec and export improvements, project workflow improvements, Undo/Redo, and other features.
 
 ## Credits
 
 Bundled stickers are designed by [OpenMoji](https://openmoji.org/) and distributed under the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) license.
 
+MP4 conversion is powered by [FFmpeg](https://ffmpeg.org/) through `ffmpeg-static-electron`. The bundled FFmpeg executable includes GPL-enabled codecs and is distributed under the GPLv3; FFmpeg source and license information are available from the linked project.
+
 ## License
 
-[MIT](LICENSE) — free to use, modify, and redistribute.
+LumaCut source code is [MIT licensed](LICENSE) — free to use, modify, and redistribute. Bundled third-party assets and binaries retain their respective licenses described above.

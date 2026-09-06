@@ -286,7 +286,7 @@ const optionalTrackItems = [
   { type: 'caption', labelKey: 'trackCaption', icon: Captions },
 ] as const
 
-type ExportCodec = 'vp9' | 'vp8'
+type ExportCodec = 'h264' | 'vp9' | 'vp8'
 type ExportResolution = 'source' | '2160p' | '1440p' | '1080p' | '720p' | '480p'
 type CanvasPreset = '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | 'custom'
 type PreviewZoom = 'fit' | 50 | 75 | 100 | 125 | 150 | 200
@@ -457,7 +457,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
-  const [exportCodec, setExportCodec] = useState<ExportCodec>('vp9')
+  const [exportCodec, setExportCodec] = useState<ExportCodec>('h264')
   const [exportResolution, setExportResolution] = useState<ExportResolution>('1080p')
   const [exportFrameRate, setExportFrameRate] = useState(30)
   const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>('16:9')
@@ -678,6 +678,14 @@ function App() {
     if (isPlaying && outgoingVideo.paused) void outgoingVideo.play().catch(() => undefined)
     if (!isPlaying && !outgoingVideo.paused) outgoingVideo.pause()
   }, [currentTime, currentTransition.active, currentVideoClip, previousVideoClip, speed, isPlaying])
+
+  useEffect(() => {
+    const unsubscribe = window.lumacut?.onMp4ExportProgress(({ progress, etaSeconds }) => {
+      setExportProgress(Math.min(99, 85 + Math.round(progress * 14)))
+      setExportEtaSeconds(etaSeconds)
+    })
+    return () => unsubscribe?.()
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('lumacut-language', language)
@@ -1475,7 +1483,7 @@ function App() {
       setZoom(loadedZoom); setZoomPercentInput(formatZoomPercent(loadedZoom))
       setSpeed(settings?.speed ?? 1); setVolume(settings?.volume ?? 100); setVideoOpacity(settings?.videoOpacity ?? 100)
       setBrightness(settings?.brightness ?? 0); setContrast(settings?.contrast ?? 0); setSaturation(settings?.saturation ?? 0)
-      setExportCodec(settings?.exportCodec ?? 'vp9'); setExportResolution(settings?.exportResolution ?? '1080p'); setExportFrameRate(settings?.exportFrameRate ?? 30)
+      setExportCodec(settings?.exportCodec ?? 'h264'); setExportResolution(settings?.exportResolution ?? '1080p'); setExportFrameRate(settings?.exportFrameRate ?? 30)
       setCanvasPreset(settings?.canvasPreset ?? '16:9'); setCanvasWidth(settings?.canvasWidth ?? 1920); setCanvasHeight(settings?.canvasHeight ?? 1080)
       setSnappingEnabled(settings?.snappingEnabled ?? true)
       const firstVideo = loadedClips.find((item) => item.sourceUrl)
@@ -1494,9 +1502,10 @@ function App() {
     }
   }
 
-  const defaultExportName = `${fileName.replace(/\.[^.]+$/, '') || 'lumacut-project'}-lumacut.webm`
+  const exportFileFormat = exportCodec === 'h264' ? 'mp4' : 'webm'
+  const defaultExportName = `${fileName.replace(/\.[^.]+$/, '') || 'lumacut-project'}-lumacut.${exportFileFormat}`
   const chooseExportPath = async () => {
-    const selected = await window.lumacut?.chooseExportPath(defaultExportName)
+    const selected = await window.lumacut?.chooseExportPath(defaultExportName, exportFileFormat)
     if (selected) setExportPath(selected)
     return selected ?? ''
   }
@@ -1515,6 +1524,7 @@ function App() {
     video.preload = 'auto'
     video.playsInline = true
     video.muted = true
+    const wantsMp4 = exportCodec === 'h264' && Boolean(window.lumacut)
     let destinationPath = exportPath
     if (window.lumacut && !destinationPath) {
       destinationPath = await chooseExportPath()
@@ -1534,7 +1544,8 @@ function App() {
       exportProgressTimeRef.current = now
       const ratio = Math.max(0, Math.min(.99, exportTime / exportTimelineDuration))
       const elapsed = (now - exportStartedAt) / 1000
-      setExportProgress(Math.round(ratio * 100))
+      const renderWeight = wantsMp4 ? .85 : 1
+      setExportProgress(Math.round(ratio * 100 * renderWeight))
       setExportEtaSeconds(ratio > .005 ? Math.max(0, elapsed / ratio * (1 - ratio)) : null)
     }
     try {
@@ -1575,7 +1586,7 @@ function App() {
       if (audioClips.length > 0 && audioDestinationRef.current) audioDestinationRef.current.stream.getAudioTracks().forEach((track) => stream.addTrack(track))
       else if (audioClips.length > 0 && mediaStreamAudio?.captureStream) mediaStreamAudio.captureStream().getAudioTracks().forEach((track) => stream.addTrack(track))
       else mediaStreamVideo.captureStream?.().getAudioTracks().forEach((track) => stream.addTrack(track))
-      const requestedMimeType = `video/webm;codecs=${exportCodec}`
+      const requestedMimeType = `video/webm;codecs=${exportCodec === 'h264' ? 'vp9' : exportCodec}`
       const mimeType = MediaRecorder.isTypeSupported(requestedMimeType) ? requestedMimeType : MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm'
       const pixels = canvas.width * canvas.height
       const videoBitsPerSecond = Math.round(Math.max(2_000_000, Math.min(36_000_000, pixels * exportFrameRate * .16)))
@@ -1812,15 +1823,17 @@ function App() {
       exportTransitionVideo.pause()
       recorder.stop(); await finished
       const blob = new Blob(chunks, { type: 'video/webm' })
+      reportExportProgress(exportTimelineDuration, true)
+      if (wantsMp4) { setExportProgress(85); setExportEtaSeconds(null) }
       if (window.lumacut && destinationPath) {
         const bytes = new Uint8Array(await blob.arrayBuffer())
-        await window.lumacut.saveExportFile(destinationPath, bytes)
+        if (wantsMp4) await window.lumacut.saveExportMp4(destinationPath, bytes, exportTimelineDuration)
+        else await window.lumacut.saveExportFile(destinationPath, bytes)
       } else {
         const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob); link.download = defaultExportName; link.click()
+        link.href = URL.createObjectURL(blob); link.download = wantsMp4 ? defaultExportName : defaultExportName.replace(/\.mp4$/i, '.webm'); link.click()
         URL.revokeObjectURL(link.href)
       }
-      reportExportProgress(exportTimelineDuration, true)
       setExportProgress(100)
       setExportEtaSeconds(0)
       setExportFinished(true)
@@ -1837,7 +1850,7 @@ function App() {
         <section className="export-modal" role="dialog" aria-modal="true" aria-label={t('exportSettings')}>
           <header><div><Download size={19}/><span><strong>{t('exportSettings')}</strong><small>{t('exportSettingsHint')}</small></span></div><button disabled={isExporting} onClick={() => setExportDialogOpen(false)}><X size={17}/></button></header>
           <div className="export-settings-grid">
-            <label>{t('encoder')}<select value={exportCodec} disabled={isExporting} onChange={(event) => setExportCodec(event.target.value as ExportCodec)}><option value="vp9">VP9 · {t('betterQuality')}</option><option value="vp8">VP8 · {t('fasterEncoding')}</option></select></label>
+            <label>{t('encoder')}<select value={exportCodec} disabled={isExporting} onChange={(event) => { setExportCodec(event.target.value as ExportCodec); setExportPath('') }}><option value="h264">H.264 · MP4</option><option value="vp9">VP9 · WebM · {t('betterQuality')}</option><option value="vp8">VP8 · WebM · {t('fasterEncoding')}</option></select></label>
             <label>{t('resolution')}<select value={exportResolution} disabled={isExporting} onChange={(event) => setExportResolution(event.target.value as ExportResolution)}>{exportResolutionOptions.map((option) => <option key={option.value} value={option.value}>{option.value === 'source' ? t('sourceResolution') : option.label}</option>)}</select></label>
             <label>{t('frameRate')}<select value={exportFrameRate} disabled={isExporting} onChange={(event) => setExportFrameRate(Number(event.target.value))}>{exportFrameRates.map((rate) => <option key={rate} value={rate}>{rate} fps</option>)}</select></label>
           </div>

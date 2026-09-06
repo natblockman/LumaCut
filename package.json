@@ -1,7 +1,7 @@
 {
   "name": "lumacut",
   "private": true,
-  "version": "1.32.0",
+  "version": "1.33.0",
   "description": "โปรแกรมตัดต่อวิดีโอเดสก์ท็อปภาษาไทย",
   "author": "LumaCut",
   "type": "module",
@@ -26,7 +26,14 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "!node_modules/ffmpeg-static-electron/bin/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/ffmpeg-static-electron/bin/${os}/${arch}",
+        "to": "ffmpeg"
+      }
     ],
     "linux": {
       "target": "AppImage",
@@ -50,6 +57,7 @@
     }
   },
   "dependencies": {
+    "ffmpeg-static-electron": "2.0.3",
     "lucide-react": "^1.40.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
