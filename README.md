@@ -6,7 +6,7 @@
 
 LumaCut is a free, open-source desktop video editor with a straightforward workflow inspired by modern editing applications such as CapCut. It is built with Electron, React, and TypeScript and is distributed under the MIT License.
 
-Current version: **1.31.0**
+Current version: **1.32.0**
 
 ## Features
 
@@ -30,7 +30,7 @@ Current version: **1.31.0**
 - Create captions manually or import an SRT file.
 - Record microphone audio directly onto the timeline.
 - Apply six per-clip video effects: Film, Light Leak, Blur, Grain, VHS, and Soft, with adjustable intensity.
-- Animate videos, text, and stickers with Fade, Zoom, and Slide presets. The Typewriter animation reveals text one character at a time.
+- Animate videos, images, text, and stickers with Fade, Zoom, and Slide presets. Position keyframes can move video or images smoothly across the canvas over time, and the Typewriter animation reveals text one character at a time.
 - Add Crossfade, Fade Through Black, Slide, and Zoom Blend transitions between adjacent clips.
 - Adjust playback speed, volume, opacity, brightness, contrast, and saturation.
 - Zoom the timeline by dragging the zoom control, clicking the magnifier buttons, or entering an exact percentage.
@@ -57,14 +57,14 @@ LumaCut does not require an account. Editing and project processing take place l
 
 Open the repository's [Releases page](https://github.com/natblockman/LumaCut/releases), select the latest release, and download the file for your operating system:
 
-- Windows: `LumaCut-Setup-1.31.0.exe`
-- Linux: `LumaCut-1.31.0.AppImage`
+- Windows: `LumaCut-Setup-1.32.0.exe`
+- Linux: `LumaCut-1.32.0.AppImage`
 
 Installers are not stored in the source tree because of their size. They are published as assets attached to GitHub Releases.
 
 ## Install on Windows
 
-1. Download `LumaCut-Setup-1.31.0.exe` from the Releases page.
+1. Download `LumaCut-Setup-1.32.0.exe` from the Releases page.
 2. Double-click the downloaded file.
 3. If Windows SmartScreen displays a warning, confirm that the file came from this repository, then select **More info** and **Run anyway**.
 4. Choose an installation folder.
@@ -79,24 +79,24 @@ Open **Settings → Apps → Installed apps → LumaCut → Uninstall**, or use 
 
 ## Run on Linux
 
-1. Download `LumaCut-1.31.0.AppImage` from the Releases page.
+1. Download `LumaCut-1.32.0.AppImage` from the Releases page.
 2. Open a terminal in the folder containing the file.
 3. Make the file executable:
 
 ```bash
-chmod +x LumaCut-1.31.0.AppImage
+chmod +x LumaCut-1.32.0.AppImage
 ```
 
 4. Start the application:
 
 ```bash
-./LumaCut-1.31.0.AppImage
+./LumaCut-1.32.0.AppImage
 ```
 
 If the AppImage cannot start because FUSE is unavailable, try running it in temporary extraction mode:
 
 ```bash
-./LumaCut-1.31.0.AppImage --appimage-extract-and-run
+./LumaCut-1.32.0.AppImage --appimage-extract-and-run
 ```
 
 ## Your First Edit
@@ -112,6 +112,15 @@ If the AppImage cannot start because FUSE is unavailable, try running it in temp
 9. Use the left panel to add audio, text, stickers, or captions. Use the trash button on a media card to remove a source from the project.
 10. Use the right panel to edit Video, Animation, Transition, and Adjust settings.
 11. Select **Export** in the upper-right corner, configure encoding, resolution, frame rate, and save location, then select **Start export**.
+
+## Position Keyframe Animation
+
+1. Select a video or image clip and move the playhead to the animation's starting time.
+2. Drag the media to its starting position, such as the left side of the canvas.
+3. Open **Animation → Position keyframes** and select **Add keyframe**.
+4. Move the playhead later in the clip, then drag the media to its next position, such as the right side. LumaCut creates the next position keyframe automatically.
+5. Press Play to preview the smooth movement between keyframes. Diamond markers on the clip show each keyframe and can be selected to jump directly to it.
+6. Add more keyframes for a longer motion path, or select **Clear position keyframes** to remove the motion. Position animation is included in exported video and saved project files.
 
 ## Export Settings and Progress
 
